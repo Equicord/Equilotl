@@ -34,11 +34,9 @@ jobs:
 
       - name: Install Linux dependencies
         run: |
-          sudo apt update
-          sudo apt install -y pkg-config libsdl2-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libglx-dev libgl1-mesa-dev libxxf86vm-dev libwayland-dev libxkbcommon-dev wayland-protocols extra-cmake-modules
           sudo add-apt-repository ppa:kisak/kisak-mesa -y
           sudo apt update
-          sudo apt install -y libwayland-dev libwayland-client0 libwayland-cursor0 libwayland-egl1 libwayland-server0 wayland-protocols
+          sudo apt install -y libwayland-dev libwayland-client0 libwayland-cursor0 libwayland-egl1 libwayland-server0 wayland-protocols pkg-config libsdl2-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libglx-dev libgl1-mesa-dev libxxf86vm-dev libxkbcommon-dev wayland-protocols extra-cmake-modules
 
       - name: Install Go dependencies
         run: go get -v
