@@ -176,24 +176,6 @@ jobs:
           export GOPATH=/mingw64
           CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -v -tags "static cli" -ldflags "-s -w -extldflags=-static -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli.exe
 
-      - name: Import code signing certificate
-        run: |
-          $pfxCertFilePath = Join-Path -Path $PSScriptRoot -ChildPath "CodeSigningCertificate.pfx"
-          Set-Content -Value $([System.Convert]::FromBase64String($env:BASE64_PFX)) -Path $pfxCertFilePath -AsByteStream
-          Import-PfxCertificate -FilePath $pfxCertFilePath -Password $($env:PFX_PASSWORD | ConvertTo-SecureString -AsPlainText -Force) -CertStoreLocation Cert:/CurrentUser/My
-        env:
-          BASE64_PFX: ${{secrets.BASE64_PFX}}
-          PFX_PASSWORD: ${{secrets.PFX_PASSWORD}}
-
-      - name: Set up Windows 10 SDK
-        uses: GuillaumeFalourd/setup-windows10-sdk-action@v2.4
-
-      - name: Digitally sign equilotl executables
-        run: |
-          New-Alias "signtool" "C:\Program Files (x86)\Windows Kits\10\bin\10.0.20348.0\x64\signtool.exe"
-          signtool sign /fd SHA256 /a /t ${{env.TIMESTAMP_SERVER}} Equilotl.exe
-          signtool sign /fd SHA256 /a /t ${{env.TIMESTAMP_SERVER}} EquilotlCli.exe
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
