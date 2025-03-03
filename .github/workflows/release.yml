@@ -8,7 +8,7 @@ on:
 
 env:
   FORCE_COLOR: true
-  GITHUB_TOKEN: ${{ secrets.ETOKEN }}
+  TIMESTAMP_SERVER: http://timestamp.digicert.com/
 
 jobs:
   build-linux:
@@ -40,15 +40,18 @@ jobs:
       - name: Install Go dependencies
         run: go get -v
 
-      - name: Build GUI
+      - name: Build X11 Gui
         run: CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -v -tags "static gui" -ldflags "-s -w -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-x11
 
-      - name: Build CLI
+      - name: Build Wayland Gui
+        run: CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -v -tags "static wayland gui" -ldflags "-s -w -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-wayland
+
+      - name: Build Cli
         run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -tags "static cli" -ldflags "-s -w -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli-linux
 
       - name: Update executable
         run: |
-          chmod +x Equilotl*
+          chmod +x Equilotl-*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -56,6 +59,7 @@ jobs:
           name: Equilotl-linux
           path: |
             Equilotl-x11
+            Equilotl-wayland
             EquilotlCli-linux
 
 
@@ -91,14 +95,14 @@ jobs:
       - name: Install Go dependencies
         run: go get -v
 
-      - name: Build GUI
-        run: CGO_CFLAGS="-mmacosx-version-min=10.15" CGO_LDFLAGS="-mmacosx-version-min=10.15" CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -v -tags "static gui" -ldflags "-s -w -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl
+      - name: Build
+        run: CGO_CFLAGS="-mmacosx-version-min=10.15" CGO_LDFLAGS="-mmacosx-version-min=10.15" CGO_ENABLED=1 GOOS=darwin GOARCH=amd64 go build -v -tags static -ldflags "-s -w -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl
 
       - name: Update executable
         run: |
-          chmod +x Equilotl*
+          chmod +x Equilotl
 
-      - name: Generate MacOS GUI bundle
+      - name: Generate MacOS bundle
         run: |
           mkdir -p Equilotl.app/Contents/MacOS
           mkdir -p Equilotl.app/Contents/Resources
@@ -111,8 +115,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Equilotl-macos
-          path: |
-            Equilotl.MacOS.zip
+          path: Equilotl.MacOS.zip
 
 
   build-windows:
@@ -154,20 +157,38 @@ jobs:
           go get -v
           go install github.com/tc-hib/go-winres@latest
 
-      - name: Build GUI
+      - name: Build Gui
         shell: msys2 {0}
         run: |
           export GOROOT=/mingw64/lib/go
           export GOPATH=/mingw64
           go-winres make --product-version "git-tag"
-          CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -v -tags "static gui" -ldflags "-s -w -H=windowsgui -extldflags=-static -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl.exe
+          CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -v -tags static -ldflags "-s -w -H=windowsgui -extldflags=-static -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl.exe
 
-      - name: Build i386 CLI
+      - name: Build i386 Cli
         shell: msys2 {0}
         run: |
           export GOROOT=/mingw64/lib/go
           export GOPATH=/mingw64
           CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -v -tags "static cli" -ldflags "-s -w -extldflags=-static -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli.exe
+
+      - name: Import code signing certificate
+        run: |
+          $pfxCertFilePath = Join-Path -Path $PSScriptRoot -ChildPath "CodeSigningCertificate.pfx"
+          Set-Content -Value $([System.Convert]::FromBase64String($env:BASE64_PFX)) -Path $pfxCertFilePath -AsByteStream
+          Import-PfxCertificate -FilePath $pfxCertFilePath -Password $($env:PFX_PASSWORD | ConvertTo-SecureString -AsPlainText -Force) -CertStoreLocation Cert:/CurrentUser/My
+        env:
+          BASE64_PFX: ${{secrets.BASE64_PFX}}
+          PFX_PASSWORD: ${{secrets.PFX_PASSWORD}}
+
+      - name: Set up Windows 10 SDK
+        uses: GuillaumeFalourd/setup-windows10-sdk-action@v2.4
+
+      - name: Digitally sign equilotl executables
+        run: |
+          New-Alias "signtool" "C:\Program Files (x86)\Windows Kits\10\bin\10.0.20348.0\x64\signtool.exe"
+          signtool sign /fd SHA256 /a /t ${{env.TIMESTAMP_SERVER}} Equilotl.exe
+          signtool sign /fd SHA256 /a /t ${{env.TIMESTAMP_SERVER}} EquilotlCli.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -205,18 +226,14 @@ jobs:
           path: windows
 
       - name: Create the release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@1e07f4398721186383de40550babbdf2b84acfc5 # v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.ETOKEN }}
         with:
           name: ${{ github.ref_name }}
-          token: ${{ env.GITHUB_TOKEN }}
-          generate_release_notes: true
-          make_latest: true
           prerelease: false
           draft: false
-          body: |
-            This is release ${{ github.ref_name }} of Equilotl.
           files: |
-            linux/Equilotl-x11
-            linux/EquilotlCli-linux
+            linux/Equilotl*
             macos/Equilotl.MacOS.zip
             windows/Equilotl*.exe
