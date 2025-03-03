@@ -34,14 +34,18 @@ jobs:
 
       - name: Install Linux dependencies
         run: |
+          sudo add-apt-repository ppa:kisak/kisak-mesa -y
           sudo apt update
-          sudo apt install -y pkg-config libsdl2-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libglx-dev libgl1-mesa-dev libxxf86vm-dev libwayland-dev libxkbcommon-dev wayland-protocols extra-cmake-modules
+          sudo apt install -y libwayland-dev libwayland-client0 libwayland-cursor0 libwayland-egl1 libwayland-server0 wayland-protocols pkg-config libsdl2-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libglx-dev libgl1-mesa-dev libxxf86vm-dev libxkbcommon-dev wayland-protocols extra-cmake-modules
 
       - name: Install Go dependencies
         run: go get -v
 
-      - name: Build GUI
+      - name: Build X11 GUI
         run: CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -v -tags "static gui" -ldflags "-s -w -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-x11
+
+      - name: Build Wayland GUI
+        run: CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -v -tags "static wayland gui" -ldflags "-s -w -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-wayland
 
       - name: Build CLI
         run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -tags "static cli" -ldflags "-s -w -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli-linux
@@ -56,6 +60,7 @@ jobs:
           name: Equilotl-linux
           path: |
             Equilotl-x11
+            Equilotl-wayland
             EquilotlCli-linux
 
 
@@ -96,7 +101,7 @@ jobs:
 
       - name: Update executable
         run: |
-          chmod +x Equilotl*
+          chmod +x Equilotl
 
       - name: Generate MacOS GUI bundle
         run: |
@@ -111,8 +116,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: Equilotl-macos
-          path: |
-            Equilotl.MacOS.zip
+          path: Equilotl.MacOS.zip
 
 
   build-windows:
@@ -160,7 +164,7 @@ jobs:
           export GOROOT=/mingw64/lib/go
           export GOPATH=/mingw64
           go-winres make --product-version "git-tag"
-          CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -v -tags "static gui" -ldflags "-s -w -H=windowsgui -extldflags=-static -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl.exe
+          CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -v -tags static -ldflags "-s -w -H=windowsgui -extldflags=-static -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl.exe
 
       - name: Build i386 CLI
         shell: msys2 {0}
@@ -206,6 +210,8 @@ jobs:
 
       - name: Create the release
         uses: softprops/action-gh-release@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.ETOKEN }}
         with:
           name: ${{ github.ref_name }}
           token: ${{ env.GITHUB_TOKEN }}
@@ -216,7 +222,6 @@ jobs:
           body: |
             This is release ${{ github.ref_name }} of Equilotl.
           files: |
-            linux/Equilotl-x11
-            linux/EquilotlCli-linux
+            linux/Equilotl*
             macos/Equilotl.MacOS.zip
             windows/Equilotl*.exe
