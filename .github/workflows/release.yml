@@ -46,7 +46,7 @@ jobs:
         run: CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -v -tags "static gui" -ldflags "-s -w -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-x11
 
       - name: Build CLI
-        run: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -tags "static cli" -ldflags "-s -w -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli-linux
+        run: CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -v -tags "cli" -ldflags "-s -w -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli-linux
 
       - name: Update executable
         run: |
@@ -174,7 +174,7 @@ jobs:
           export GOROOT=/mingw64/lib/go
           export GOPATH=/mingw64
           go-winres make --product-version "${{ github.ref_name }}" --file-description "Equilotl Installer" --original-filename "EquilotlCLI.exe"
-          CGO_ENABLED=0 GOOS=windows GOARCH=386 go build -v -tags "cli" -ldflags "-X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli.exe
+          CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -v -tags "cli" -ldflags "-X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
