@@ -165,7 +165,7 @@ jobs:
         run: |
           export GOROOT=/mingw64/lib/go
           export GOPATH=/mingw64
-          go-winres make --product-version "${{ github.ref_name }}" --file-description "Equilotl Installer" --original-filename "Equilotl.exe"
+          go-winres make --product-version git-tag --file-version git-tag
           CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -v -tags "gui" -ldflags "-H=windowsgui -X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl.exe
 
       - name: Build i386 CLI
@@ -173,7 +173,7 @@ jobs:
         run: |
           export GOROOT=/mingw64/lib/go
           export GOPATH=/mingw64
-          go-winres make --product-version "${{ github.ref_name }}" --file-description "Equilotl Installer" --original-filename "EquilotlCLI.exe"
+          go-winres make --product-version git-tag --file-version git-tag
           CGO_ENABLED=1 GOOS=windows GOARCH=386 go build -v -tags "cli" -ldflags "-X 'vencord/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'vencord/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli.exe
 
       - name: Upload artifact
