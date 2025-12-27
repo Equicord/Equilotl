@@ -52,11 +52,11 @@ func init() {
 	Home = os.Getenv("HOME")
 
 	DiscordDirs = []string{
-		"/AppImages",
 		"/usr/share",
 		"/usr/lib64",
 		"/opt",
-		path.Join(Home, "/Applications"),
+		path.Join(Home, "Applications"),
+		path.Join(Home, "AppImages"),
 		path.Join(Home, ".local/share"),
 		path.Join(Home, ".local/bin"),
 		path.Join(Home, ".dvm"),
