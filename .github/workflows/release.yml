@@ -127,12 +127,11 @@ jobs:
 
       - name: Notarize the app
         env:
+          API_KEY: ${{ secrets.APPLE_API_KEY }}
           APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
           APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
         run: |
-          cat << 'EOF' > apple.p8
-          ${{ secrets.APPLE_API_KEY }}
-          EOF
+          echo "$API_KEY" > apple.p8
           ditto -c -k --keepParent Equilotl.app Equilotl-notarize.zip
           xcrun notarytool submit Equilotl-notarize.zip --key apple.p8 --key-id "$APPLE_API_KEY_ID" --issuer "$APPLE_API_ISSUER" --wait
           xcrun stapler staple Equilotl.app
