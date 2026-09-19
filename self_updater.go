@@ -54,9 +54,9 @@ func GetInstallerDownloadLink() string {
 	case "darwin":
 		switch runtime.GOARCH {
 		case "amd64":
-			return BaseUrl + "Equilotl-darwin-x64.zip"
+			return BaseUrl + "Equilotl-x64.dmg"
 		case "arm64":
-			return BaseUrl + "Equilotl-darwin-arm64.zip"
+			return BaseUrl + "Equilotl-arm64.dmg"
 		default:
 			return ""
 		}

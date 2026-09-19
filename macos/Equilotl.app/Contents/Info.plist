@@ -5,15 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>English</string>
 	<key>CFBundleDisplayName</key>
-	<string>Vencord Installer</string>
+	<string>Equilotl</string>
 	<key>CFBundleExecutable</key>
-	<string>VencordInstaller</string>
+	<string>Equilotl</string>
 	<key>CFBundleIdentifier</key>
-	<string>dev.vendicated.vencordinstaller</string>
+	<string>org.equicord.equilotl</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>Vencord Installer</string>
+	<string>Equilotl</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -27,14 +27,14 @@
 	<key>NSHighResolutionCapable</key>
 	<true/>
 	<key>CFBundleIconFile</key>
-	<string>AppIcon</string>
-	<key>CFBundleIconName</key>
-	<string>AppIcon</string>
+	<string>icon.icns</string>
 	<key>NSHumanReadableCopyright</key>
-	<string>Copyright © 2026 Vendicated and contributors</string>
+	<string>Copyright © 2026 Vencord and Equicord contributors contributors</string>
 	<key>LSApplicationCategoryType</key>
 	<string>public.app-category.utilities</string>
 	<key>LSMinimumSystemVersion</key>
 	<string>10.13</string>
+	<key>LSUIElement</key>
+	<true/>
 </dict>
 </plist>

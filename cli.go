@@ -100,7 +100,7 @@ func main() {
 
 	if *installFlag || *updateFlag {
 		if !<-GithubDoneChan {
-			die("Not " + Ternary(*installFlag, "installing", "updating") + " as fetching release data failed")
+			die("Not " + Ternary(*installFlag, "installing", "updating") + " as fetching release data failed. If this issue persists, see " + SupportUrl)
 		}
 	}
 
@@ -206,7 +206,7 @@ func exitSuccess() {
 }
 
 func exitFailure() {
-	color.HiRed("❌ Failed!")
+	color.HiRed("❌ Failed! If this issue persists, see " + SupportUrl)
 	exit(1)
 }
 
@@ -228,7 +228,7 @@ func PromptDiscord(action, dir, branch string) *DiscordInstall {
 				}
 			}
 		}
-		die("No Discord install found. Try manually specifying it with the --dir flag. Hint: snap is not supported")
+		die("No Discord install found. Before proceeding, make sure Discord is installed. snap is not supported!")
 	}
 
 	if branch != "" {
@@ -255,7 +255,7 @@ func PromptDiscord(action, dir, branch string) *DiscordInstall {
 	items := SliceMap(discords, func(d any) string {
 		install := d.(*DiscordInstall)
 		//goland:noinspection GoDeprecation
-		return fmt.Sprintf("%s - %s%s", strings.Title(install.branch), install.path, Ternary(install.isPatched, " [PATCHED]", ""))
+		return fmt.Sprintf("%s - %s%s", strings.Title(install.branch), install.path, Ternary(install.isPatched, " [Equicord Installed]", ""))
 	})
 	items = append(items, "Custom Location")
 
@@ -290,6 +290,10 @@ func PromptDiscord(action, dir, branch string) *DiscordInstall {
 }
 
 func InstallLatestBuilds() error {
+	if IsDevInstall {
+		return nil
+	}
+
 	return installLatestBuilds()
 }
 

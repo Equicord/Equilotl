@@ -13,7 +13,7 @@ GUI 		?= 0
 DMG 		?= 0
 WAYLAND 	?= 0
 
-LDFLAGS 	?= -s -w -X 'vencordinstaller/buildinfo.InstallerGitHash=$(HASH)' -X 'vencordinstaller/buildinfo.InstallerTag=$(VERSION)'
+LDFLAGS 	?= -s -w -X 'equilotl/buildinfo.InstallerGitHash=$(HASH)' -X 'equilotl/buildinfo.InstallerTag=$(VERSION)'
 TAGS    	?= static
 CGO 		:= 0
 POSTFIX 	:=
@@ -67,34 +67,34 @@ ifeq ($(ARCH),universal)
 	rm build/installer-amd64 build/installer-arm64
 endif # ARCH
 ifeq ($(GUI),1)
-	cp -R macos/VencordInstaller.app build/VencordInstaller.app
-	/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $(VERSION)" build/VencordInstaller.app/Contents/Info.plist
-	/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $(HASH)" build/VencordInstaller.app/Contents/Info.plist
+	cp -R macos/Equilotl.app build/Equilotl.app
+	/usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $(VERSION)" build/Equilotl.app/Contents/Info.plist
+	/usr/libexec/PlistBuddy -c "Set :CFBundleVersion $(HASH)" build/Equilotl.app/Contents/Info.plist
 ifeq ($(ARCH),universal)
-	mv build/installer-universal build/VencordInstaller.app/Contents/MacOS/VencordInstaller
+	mv build/installer-universal build/Equilotl.app/Contents/MacOS/Equilotl
 else
-	mv build/installer-$(ARCH) build/VencordInstaller.app/Contents/MacOS/VencordInstaller
+	mv build/installer-$(ARCH) build/Equilotl.app/Contents/MacOS/Equilotl
 endif # ARCH
-	codesign --deep --force --options runtime --sign "$(IDENTITY)" build/VencordInstaller.app
+	codesign --deep --force --options runtime --sign "$(IDENTITY)" build/Equilotl.app
 ifeq ($(DMG),1)
 ifeq ($(shell command -v create-dmg 2>/dev/null),)
 	$(error create-dmg is not installed)
 endif
 	create-dmg \
-		--volname "Vencord Installer" \
-		--volicon macos/dmg.icns \
+		--volname "Equilotl" \
+		--volicon macos/icon.icns \
 		--background "macos/background.png" \
 		--window-pos 200 120 \
 		--window-size 510 340 \
 		--icon-size 100 \
-		--icon VencordInstaller.app 160 155 \
-		--hide-extension VencordInstaller.app \
+		--icon Equilotl.app 160 155 \
+		--hide-extension Equilotl.app \
 		--app-drop-link 350 155 \
-		build/VencordInstaller.dmg \
-		build/VencordInstaller.app
+		build/Equilotl.dmg \
+		build/Equilotl.app
 endif # DMG
 else # GUI
-	mv build/installer-$(ARCH) build/VencordInstallerCli-$(PLATFORM)
+	mv build/installer-$(ARCH) build/EquilotlCli-$(PLATFORM)
 endif # GUI
 
 else ifeq ($(PLATFORM),windows) # PLATFORM
@@ -105,15 +105,15 @@ else ifeq ($(PLATFORM),windows) # PLATFORM
 	CGO_ENABLED=$(CGO) GOOS=$(PLATFORM) GOARCH=$(ARCH) \
 		go build -v -tags "$(TAGS)" \
 		-ldflags "$(LDFLAGS)" \
-		-o build/VencordInstaller$(POSTFIX).exe
+		-o build/Equilotl$(POSTFIX).exe
 
 else # PLATFORM
 	CGO_ENABLED=$(CGO) GOOS=$(PLATFORM) GOARCH=$(ARCH) go build \
 		-v \
 		-tags "$(TAGS)" \
 		-ldflags "$(LDFLAGS)" \
-		-o build/VencordInstaller$(POSTFIX)-$(PLATFORM)
-	chmod +x build/VencordInstaller$(POSTFIX)-$(PLATFORM)
+		-o build/Equilotl$(POSTFIX)-$(PLATFORM)
+	chmod +x build/Equilotl$(POSTFIX)-$(PLATFORM)
 endif
 
 clean:
