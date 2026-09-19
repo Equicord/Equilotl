@@ -13,8 +13,14 @@ Windows
 
 MacOS
 
-- [X64 GUI](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl-darwin-x64.zip)
-- [ARM64 GUI](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl-darwin-arm64.zip)
+- [Universal GUI](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl.dmg)
+- [X64 GUI](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl-x64.dmg)
+- [ARM64 GUI](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl-arm64.dmg)
+- [Universal CLI](https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli-universal)
+- [X64 CLI](https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli-x64)
+- [ARM64 CLI](https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli-arm64)
+
+The CLI builds are plain binaries, so run `chmod +x <file>` after downloading.
 
 Linux
 
@@ -66,13 +72,13 @@ go mod tidy
 ##### Windows / Mac / Linux X11
 
 ```sh
-go build
+make GUI=1
 ```
 
 ##### Linux Wayland
 
 ```sh
-go build --tags wayland
+make GUI=1 WAYLAND=1
 ```
 
 #### Build the CLI
