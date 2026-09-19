@@ -4,3 +4,5 @@ vencord
 *.syso
 *.old
 vendor
+build
+.DS_Store

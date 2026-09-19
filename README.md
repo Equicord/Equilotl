@@ -66,13 +66,13 @@ go mod tidy
 ##### Windows / Mac / Linux X11
 
 ```sh
-go build
+make GUI=1
 ```
 
 ##### Linux Wayland
 
 ```sh
-go build --tags wayland
+make GUI=1 WAYLAND=1
 ```
 
 #### Build the CLI
