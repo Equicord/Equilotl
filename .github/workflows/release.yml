@@ -89,6 +89,66 @@ jobs:
             Equilotl
             EquilotlCli-linux
 
+  build-linux-arm64:
+    runs-on: ubuntu-24.04-arm # Native ARM64 runner, the GUI needs ARM64 X11/Wayland/GL libraries
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Install Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version: "1.26"
+
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-arm64-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-arm64-go-
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt update
+          sudo apt install -y pkg-config libsdl2-dev libx11-dev libxcursor-dev libxrandr-dev libxinerama-dev libxi-dev libglx-dev libgl1-mesa-dev libxxf86vm-dev libglfw3-dev libwayland-dev libwayland-egl1 libegl-dev libxkbcommon-dev wayland-protocols extra-cmake-modules
+
+      - name: Install Go dependencies
+        run: go get -v
+
+      - name: Recreate vendor and apply Wayland patches
+        run: |
+          go mod vendor
+          git apply patches/wayland.patch
+
+      - name: Build GUI (X11)
+        run: CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -v -tags static -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-x11-arm64
+
+      - name: Build GUI (Wayland)
+        run: CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -v -tags "static wayland" -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-wayland-arm64
+
+      - name: Build GUI (Combined)
+        run: CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -v -tags "static combined" -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-arm64
+
+      - name: Build CLI
+        run: CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -v -tags "cli" -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli-linux-arm64
+
+      - name: Update executable
+        run: |
+          chmod +x Equilotl*
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Equilotl-linux-arm64
+          path: |
+            Equilotl-x11-arm64
+            Equilotl-wayland-arm64
+            Equilotl-arm64
+            EquilotlCli-linux-arm64
+
   build-mac:
     runs-on: ${{ matrix.runner }}
 
@@ -370,7 +430,7 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    needs: [build-linux, build-mac, build-mac-dmg, build-windows, build-windows-arm64]
+    needs: [build-linux, build-linux-arm64, build-mac, build-mac-dmg, build-windows, build-windows-arm64]
 
     steps:
       - name: Checkout code
@@ -380,6 +440,12 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: Equilotl-linux
+          path: linux
+
+      - name: "Download Linux ARM64 Artifacts"
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: Equilotl-linux-arm64
           path: linux
 
       - name: "Download MacOS Artifacts"
@@ -432,6 +498,10 @@ jobs:
             linux/Equilotl-wayland
             linux/Equilotl
             linux/EquilotlCli-linux
+            linux/Equilotl-x11-arm64
+            linux/Equilotl-wayland-arm64
+            linux/Equilotl-arm64
+            linux/EquilotlCli-linux-arm64
             macos/Equilotl-x64.dmg
             macos/Equilotl-arm64.dmg
             macos/Equilotl.dmg

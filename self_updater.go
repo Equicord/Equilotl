@@ -64,6 +64,9 @@ func GetInstallerDownloadLink() string {
 			return ""
 		}
 	case "linux":
+		if runtime.GOARCH == "arm64" {
+			return BaseUrl + "EquilotlCli-linux-arm64"
+		}
 		return BaseUrl + "EquilotlCli-linux"
 	default:
 		return ""

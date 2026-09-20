@@ -27,7 +27,9 @@ The CLI builds are plain binaries, so run `chmod +x <file>` after downloading.
 Linux
 
 - [GUI](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl-x11)
+- [ARM64 GUI](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl-x11-arm64)
 - [CLI](https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli-Linux)
+- [ARM64 CLI](https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli-linux-arm64)
 
 ## Building from source
 

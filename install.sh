@@ -18,7 +18,12 @@ echo "Downloading Installer..."
 
 set -- "XDG_CONFIG_HOME=$XDG_CONFIG_HOME"
 
-curl -sS https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli-Linux \
+case "$(uname -m)" in
+  aarch64|arm64) binary="EquilotlCli-linux-arm64" ;;
+  *) binary="EquilotlCli-Linux" ;;
+esac
+
+curl -sS "https://github.com/Equicord/Equilotl/releases/latest/download/$binary" \
   --output "$outfile" \
   --location \
   --fail
