@@ -8,9 +8,9 @@ The Equicord Installer allows you to install [Equicord, the cutest Discord Deskt
 
 Windows
 
-- [GUI](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl.exe)
+- [X64 GUI](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl.exe)
 - [ARM64 GUI](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl-arm64.exe)
-- [CLI](https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli.exe)
+- [X64 CLI](https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli.exe)
 - [ARM64 CLI](https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli-arm64.exe)
 
 MacOS
@@ -32,7 +32,7 @@ Linux
 - [ARM64 Combined GUI](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl-arm64)
 - [ARM64 X11 GUI](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl-x11-arm64)
 - [ARM64 Wayland GUI](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl-wayland-arm64)
-- [CLI](https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli-Linux)
+- [X64 CLI](https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli-Linux)
 - [ARM64 CLI](https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli-linux-arm64)
 
 ## Building from source
