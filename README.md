@@ -29,7 +29,7 @@ Linux
 | Combined GUI | [Download](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl) | [Download](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl-arm64) |
 | X11 GUI | [Download](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl-x11) | [Download](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl-x11-arm64) |
 | Wayland GUI | [Download](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl-wayland) | [Download](https://github.com/Equicord/Equilotl/releases/latest/download/Equilotl-wayland-arm64) |
-| CLI | [Download](https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli-Linux) | [Download](https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli-linux-arm64) |
+| CLI | [Download](https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli-linux) | [Download](https://github.com/Equicord/Equilotl/releases/latest/download/EquilotlCli-linux-arm64) |
 
 
 ## Building from source
