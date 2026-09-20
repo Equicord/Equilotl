@@ -1,0 +1,27 @@
+name: Submit to Winget Community Repo
+
+on:
+  workflow_run:
+    workflows: [Release]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      tag:
+        type: string
+        description: The release tag to submit
+        required: true
+
+jobs:
+  winget:
+    name: Publish winget package
+    runs-on: windows-latest
+    if: github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && !contains(github.event.workflow_run.head_branch, '-'))
+    steps:
+      - name: Submit package to Winget Community Repo
+        uses: vedantmgoyal2009/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
+        with:
+          identifier: Equicord.Equilotl
+          token: ${{ secrets.WINGET_PAT }}
+          installers-regex: 'EquilotlCli-(x64|arm64)\.exe$'
+          release-tag: ${{ inputs.tag || github.event.workflow_run.head_branch }}
+          fork-user: thororen1234

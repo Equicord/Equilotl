@@ -361,6 +361,7 @@ jobs:
         shell: msys2 {0}
         run: |
           CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -v -tags "cli" -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli.exe
+          cp EquilotlCli.exe EquilotlCli-x64.exe # Explicit arch in the name, winget picks installers by it
 
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -369,6 +370,7 @@ jobs:
           path: |
             Equilotl.exe
             EquilotlCli.exe
+            EquilotlCli-x64.exe
 
   build-windows-arm64:
     runs-on: windows-latest # No ARM64 runner needed, the ARM64 binaries are cross-compiled
