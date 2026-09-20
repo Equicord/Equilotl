@@ -17,8 +17,12 @@ LDFLAGS 	?= -s -w -X 'equilotl/buildinfo.InstallerGitHash=$(HASH)' -X 'equilotl/
 TAGS    	?= static
 CGO 		:= 0
 POSTFIX 	:=
+WINARCH 	:=
 
 ifeq ($(PLATFORM),windows)
+ifeq ($(ARCH),arm64)
+WINARCH 	:= -arm64
+endif # ARCH
 ifeq ($(GUI),0)
 LDFLAGS 	+= -extldflags=-static
 else
@@ -101,11 +105,11 @@ else ifeq ($(PLATFORM),windows) # PLATFORM
 	export GOROOT=/mingw64/lib/go
 	export GOPATH=/mingw64
 
-	go-winres make --product-version "git-tag"
+	go-winres make --arch $(ARCH) --product-version "git-tag"
 	CGO_ENABLED=$(CGO) GOOS=$(PLATFORM) GOARCH=$(ARCH) \
 		go build -v -tags "$(TAGS)" \
 		-ldflags "$(LDFLAGS)" \
-		-o build/Equilotl$(POSTFIX).exe
+		-o build/Equilotl$(POSTFIX)$(WINARCH).exe
 
 else # PLATFORM
 	CGO_ENABLED=$(CGO) GOOS=$(PLATFORM) GOARCH=$(ARCH) go build \
@@ -134,6 +138,8 @@ help:
 		'  WAYLAND=1        Build with Wayland support for Linux' \
 		'  PLATFORM=<os>    Target platform (darwin, windows, linux)' \
 		'  ARCH=<arch>      Target architecture (amd64, arm64, 386, universal (macOS only))' \
+		'  CC=<cc> CXX=<c++>  C/C++ compilers, for a GUI build that cross-compiles' \
+		'                     (e.g. aarch64-w64-mingw32-clang for a Windows ARM64 GUI)' \
 		'  IDENTITY=<id>    Code signing identity for macOS (default: -)' \
 		'  VERSION=<ver>    Version string (default: latest git tag)' \
 		'' \
@@ -141,4 +147,5 @@ help:
 		'  make clean' \
 		'  make PLATFORM=universal GUI=1' \
 		'  make PLATFORM=linux ARCH=amd64' \
+		'  make PLATFORM=windows ARCH=arm64' \
 		'  make GUI=1 VERSION="1.0.0"'

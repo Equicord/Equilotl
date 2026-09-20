@@ -49,8 +49,11 @@ func GetInstallerDownloadLink() string {
 	const BaseUrl = "https://github.com/Equicord/Equilotl/releases/latest/download/"
 	switch runtime.GOOS {
 	case "windows":
-		filename := Ternary(buildinfo.UiType == buildinfo.UiTypeCli, "EquilotlCli.exe", "Equilotl.exe")
-		return BaseUrl + filename
+		filename := Ternary(buildinfo.UiType == buildinfo.UiTypeCli, "EquilotlCli", "Equilotl")
+		if runtime.GOARCH == "arm64" {
+			filename += "-arm64"
+		}
+		return BaseUrl + filename + ".exe"
 	case "darwin":
 		switch runtime.GOARCH {
 		case "amd64":
