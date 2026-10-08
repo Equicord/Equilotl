@@ -11,6 +11,7 @@ env:
 
 permissions:
   contents: write
+  actions: read # SignPath fetches the unsigned artifact through the workflow token
 
 jobs:
   build-linux:
@@ -363,14 +364,35 @@ jobs:
           CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -v -tags "cli" -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli.exe
           cp EquilotlCli.exe EquilotlCli-x64.exe # Explicit arch in the name, winget picks installers by it
 
-      - name: Upload artifact
+      - name: Upload unsigned artifact
+        id: upload-unsigned
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
-          name: Equilotl-windows
+          name: Equilotl-windows-unsigned
           path: |
             Equilotl.exe
             EquilotlCli.exe
             EquilotlCli-x64.exe
+
+      - name: Submit SignPath signing request
+        uses: signpath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3.0
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_KEY }}
+          organization-id: ${{ secrets.SIGNPATH_ORG_ID }}
+          project-slug: Equicord
+          signing-policy-slug: test-signing
+          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: windows-signed/
+
+      - name: Upload signed artifact
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Equilotl-windows
+          path: |
+            windows-signed/Equilotl.exe
+            windows-signed/EquilotlCli.exe
+            windows-signed/EquilotlCli-x64.exe
 
   build-windows-arm64:
     runs-on: windows-latest # No ARM64 runner needed, the ARM64 binaries are cross-compiled
@@ -422,13 +444,33 @@ jobs:
         run: |
           CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -v -tags "cli" -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli-arm64.exe
 
-      - name: Upload artifact
+      - name: Upload unsigned artifact
+        id: upload-unsigned
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: Equilotl-windows-arm64-unsigned
+          path: |
+            Equilotl-arm64.exe
+            EquilotlCli-arm64.exe
+
+      - name: Submit SignPath signing request
+        uses: signpath/github-action-submit-signing-request@f6d04783b4569d051e0c80105fe66e82819d0092 # v3.0
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_KEY }}
+          organization-id: ${{ secrets.SIGNPATH_ORG_ID }}
+          project-slug: Equicord
+          signing-policy-slug: test-signing
+          github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: windows-signed/
+
+      - name: Upload signed artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
           name: Equilotl-windows-arm64
           path: |
-            Equilotl-arm64.exe
-            EquilotlCli-arm64.exe
+            windows-signed/Equilotl-arm64.exe
+            windows-signed/EquilotlCli-arm64.exe
 
   release:
     runs-on: ubuntu-latest
