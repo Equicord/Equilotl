@@ -379,7 +379,7 @@ jobs:
         with:
           api-token: ${{ secrets.SIGNPATH_API_KEY }}
           organization-id: ${{ secrets.SIGNPATH_ORG_ID }}
-          project-slug: Equicord
+          project-slug: Equilotl
           signing-policy-slug: test-signing
           github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
           wait-for-completion: true
@@ -458,7 +458,7 @@ jobs:
         with:
           api-token: ${{ secrets.SIGNPATH_API_KEY }}
           organization-id: ${{ secrets.SIGNPATH_ORG_ID }}
-          project-slug: Equicord
+          project-slug: Equilotl
           signing-policy-slug: test-signing
           github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
           wait-for-completion: true
@@ -474,7 +474,15 @@ jobs:
 
   release:
     runs-on: ubuntu-latest
-    needs: [build-linux, build-linux-arm64, build-mac, build-mac-dmg, build-windows, build-windows-arm64]
+    needs:
+      [
+        build-linux,
+        build-linux-arm64,
+        build-mac,
+        build-mac-dmg,
+        build-windows,
+        build-windows-arm64,
+      ]
 
     steps:
       - name: Checkout code
