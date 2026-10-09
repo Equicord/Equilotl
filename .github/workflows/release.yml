@@ -547,6 +547,8 @@ jobs:
           draft: false
           body: |
             This is release ${{ github.ref_name }} of Equilotl.
+
+            Windows binaries are code signed via [SignPath](https://signpath.io).
           files: |
             linux/Equilotl-x11
             linux/Equilotl-wayland
