@@ -381,6 +381,7 @@ jobs:
           organization-id: ${{ secrets.SIGNPATH_ORG_ID }}
           project-slug: Equilotl
           signing-policy-slug: test-signing
+          artifact-configuration-slug: x64
           github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
           wait-for-completion: true
           output-artifact-directory: windows-signed/
@@ -460,6 +461,7 @@ jobs:
           organization-id: ${{ secrets.SIGNPATH_ORG_ID }}
           project-slug: Equilotl
           signing-policy-slug: test-signing
+          artifact-configuration-slug: arm64
           github-artifact-id: ${{ steps.upload-unsigned.outputs.artifact-id }}
           wait-for-completion: true
           output-artifact-directory: windows-signed/
