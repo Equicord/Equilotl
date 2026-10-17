@@ -18,7 +18,7 @@ const InstallerReleaseUrlFallback = "https://equicord.org/releases/equilotl"
 
 var UserAgent = "Equilotl/" + buildinfo.InstallerGitHash + " (https://github.com/Equicord/Equilotl)"
 
-const SupportUrl = "https://github.com/Equicord/Equilotl/issues"
+const SupportUrl = "https://equicord.org/discord"
 
 var (
 	DiscordGreen        = color.RGBA{0, 133, 69, 0xff}
