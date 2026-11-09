@@ -80,11 +80,11 @@ func tryAppDir(p, appDirName string) (string, bool, []int, bool) {
 	if !ExistsFile(resources) {
 		return "", false, nil, false
 	}
-	dirIsPatched := ExistsFile(path.Join(resources, "_app.asar"))
-	if !dirIsPatched && !ExistsFile(path.Join(resources, "app.asar")) {
+	dirIsPatched := isResourcesFolderPatched(resources)
+	if !dirIsPatched && !isResourcesFolderValid(resources) {
 		return "", false, nil, false
 	}
-	return path.Join(resources, "app"), dirIsPatched, ver, true
+	return resources, dirIsPatched, ver, true
 }
 
 func ParseDiscordNew(p, branch string, isFlatpak bool) *DiscordInstall {
@@ -97,34 +97,34 @@ func ParseDiscordNew(p, branch string, isFlatpak bool) *DiscordInstall {
 	}
 
 	isPatched := false
-	appPath := ""
+	resourcesPath := ""
 
 	if target, err := os.Readlink(path.Join(p, "Discord")); err == nil {
-		if a, ip, _, ok := tryAppDir(p, path.Base(path.Dir(target))); ok {
-			appPath = a
+		if r, ip, _, ok := tryAppDir(p, path.Base(path.Dir(target))); ok {
+			resourcesPath = r
 			isPatched = ip
 		}
 	}
 
-	if appPath == "" {
+	if resourcesPath == "" {
 		var latestVer []int
 		for _, dir := range entries {
 			if !dir.IsDir() {
 				continue
 			}
-			a, ip, ver, ok := tryAppDir(p, dir.Name())
+			r, ip, ver, ok := tryAppDir(p, dir.Name())
 			if !ok {
 				continue
 			}
-			if appPath == "" || CompareAppVersion(ver, latestVer) > 0 {
-				appPath = a
+			if resourcesPath == "" || CompareAppVersion(ver, latestVer) > 0 {
+				resourcesPath = r
 				isPatched = ip
 				latestVer = ver
 			}
 		}
 	}
 
-	if appPath == "" {
+	if resourcesPath == "" {
 		return nil
 	}
 
@@ -133,12 +133,11 @@ func ParseDiscordNew(p, branch string, isFlatpak bool) *DiscordInstall {
 	}
 
 	return &DiscordInstall{
-		path:             p,
-		branch:           branch,
-		appPath:          appPath,
-		isPatched:        isPatched,
-		isFlatpak:        isFlatpak,
-		isSystemElectron: false,
+		path:          p,
+		branch:        branch,
+		resourcesPath: resourcesPath,
+		isPatched:     isPatched,
+		isFlatpak:     isFlatpak,
 	}
 }
 
@@ -156,26 +155,21 @@ func ParseDiscord(p, _ string) *DiscordInstall {
 	}
 
 	resources := path.Join(p, "resources")
-	app := path.Join(resources, "app")
 
-	isPatched, isSystemElectron := false, false
+	isPatched := false
 
-	if ExistsFile(resources) { // normal install
-		isPatched = ExistsFile(path.Join(resources, "_app.asar"))
-	} else if ExistsFile(path.Join(p, "app.asar")) { // System electron doesn't have resources folder
-		isSystemElectron = true
-		isPatched = ExistsFile(path.Join(p, "_app.asar.unpacked"))
+	if isResourcesFolderValid(resources) {
+		isPatched = isResourcesFolderPatched(resources)
 	} else {
 		return nil
 	}
 
 	return &DiscordInstall{
-		path:             p,
-		branch:           GetBranch(name),
-		appPath:          app,
-		isPatched:        isPatched,
-		isFlatpak:        needsFlatpakResolve,
-		isSystemElectron: isSystemElectron,
+		path:          p,
+		branch:        GetBranch(name),
+		resourcesPath: resources,
+		isPatched:     isPatched,
+		isFlatpak:     needsFlatpakResolve,
 	}
 }
 

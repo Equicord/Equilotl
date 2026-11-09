@@ -40,7 +40,7 @@ func ParseDiscord(p, branch string) *DiscordInstall {
 	}
 
 	isPatched := false
-	appPath := ""
+	resourcesPath := ""
 	var latestVer []int
 	for _, dir := range entries {
 		if !dir.IsDir() || !strings.HasPrefix(dir.Name(), "app-") {
@@ -50,22 +50,22 @@ func ParseDiscord(p, branch string) *DiscordInstall {
 		if !ExistsFile(resources) {
 			continue
 		}
-		dirIsPatched := ExistsFile(path.Join(resources, "_app.asar"))
-		if !dirIsPatched && !ExistsFile(path.Join(resources, "app.asar")) {
+		dirIsPatched := isResourcesFolderPatched(resources)
+		if !dirIsPatched && !isResourcesFolderValid(resources) {
 			continue
 		}
 		ver := ParseAppVersion(dir.Name())
 		if ver == nil {
 			continue
 		}
-		if appPath == "" || CompareAppVersion(ver, latestVer) > 0 {
-			appPath = path.Join(resources, "app")
+		if resourcesPath == "" || CompareAppVersion(ver, latestVer) > 0 {
+			resourcesPath = resources
 			isPatched = dirIsPatched
 			latestVer = ver
 		}
 	}
 
-	if appPath == "" {
+	if resourcesPath == "" {
 		return nil
 	}
 
@@ -74,12 +74,11 @@ func ParseDiscord(p, branch string) *DiscordInstall {
 	}
 
 	return &DiscordInstall{
-		path:             p,
-		branch:           branch,
-		appPath:          appPath,
-		isPatched:        isPatched,
-		isFlatpak:        false,
-		isSystemElectron: false,
+		path:          p,
+		branch:        branch,
+		resourcesPath: resourcesPath,
+		isPatched:     isPatched,
+		isFlatpak:     false,
 	}
 }
 
