@@ -137,7 +137,7 @@ func (di *DiscordInstall) patch() error {
 
 		Log.Debug("This is a flatpak. Trying to grant the Flatpak access to", EquicordDirectory+"...")
 
-		isSystemFlatpak := strings.HasPrefix(di.path, "/var")
+		isSystemFlatpak := !strings.Contains(di.path, "/.local/share/flatpak/")
 		var args []string
 		if !isSystemFlatpak {
 			args = append(args, "--user")
@@ -178,6 +178,16 @@ func isEquicordLoaderAppAsar(appAsar string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	if stat.IsDir() {
+		b, err := os.ReadFile(path.Join(appAsar, "index.js"))
+		if err != nil {
+			if errors.Is(err, os.ErrNotExist) {
+				return false, nil
+			}
+			return false, err
+		}
+		return bytes.Contains(b, []byte("require(")), nil
+	}
 	if stat.Size() > 128*1024 {
 		return false, nil
 	}
@@ -215,6 +225,7 @@ func unpatchAppAsar(dir string) (errOut error) {
 
 	cleanedUp, err := cleanupDesyncedPatchedInstall(dir)
 	if err != nil {
+		Log.Error(err.Error())
 		return err
 	}
 	if cleanedUp {

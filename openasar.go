@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"errors"
 	"io"
-	"net/http"
 	"os"
 	path "path/filepath"
 	"strconv"
@@ -91,7 +90,7 @@ func (di *DiscordInstall) InstallOpenAsar() error {
 		}
 	}()
 
-	res, err := http.Get(OpenAsarDownloadLink)
+	res, err := httpGet(OpenAsarDownloadLink)
 	if err != nil {
 		return err
 	}

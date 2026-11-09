@@ -11,7 +11,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/http"
 	"os"
 	path "path/filepath"
 	"regexp"
@@ -39,15 +38,7 @@ var IsDevInstall bool
 func GetGithubRelease(url, fallbackUrl string) (*GithubRelease, error) {
 	Log.Debug("Fetching", url)
 
-	req, err := http.NewRequest("GET", url, nil)
-	if err != nil {
-		Log.Error("Failed to create Request", err)
-		return nil, err
-	}
-
-	req.Header.Set("User-Agent", UserAgent)
-
-	res, err := http.DefaultClient.Do(req)
+	res, err := httpGet(url)
 	if err != nil {
 		Log.Error("Failed to send Request", err)
 		return nil, err
@@ -166,13 +157,16 @@ func installLatestBuilds() (retErr error) {
 
 	Log.Debug("Downloading desktop.asar")
 
-	res, err := http.Get(downloadUrl)
-	if err == nil && res.StatusCode >= 300 {
-		err = errors.New(res.Status)
-	}
+	res, err := httpGet(downloadUrl)
 	if err != nil {
 		Log.Error("Failed to download desktop.asar:", err)
 		retErr = err
+		return
+	}
+	defer res.Body.Close()
+	if res.StatusCode >= 300 {
+		retErr = errors.New(res.Status)
+		Log.Error("Failed to download desktop.asar:", retErr)
 		return
 	}
 	out, err := os.OpenFile(EquicordDirectory, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
@@ -181,6 +175,7 @@ func installLatestBuilds() (retErr error) {
 		retErr = err
 		return
 	}
+	defer out.Close()
 	read, err := io.Copy(out, res.Body)
 	if err != nil {
 		Log.Error("Failed to download to", EquicordDirectory+":", err)
