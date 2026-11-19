@@ -53,10 +53,20 @@ func ParseDiscord(p, branch string) *DiscordInstall {
 
 func FindDiscords() []any {
 	var discords []any
+	home := os.Getenv("HOME")
+
 	bases := []string{
 		"/Applications",
-		path.Join(os.Getenv("HOME"), "Applications"),
+		path.Join(home, "Applications"),
 	}
+
+	appSupportNames := map[string]string{
+		"stable": "discord",
+		"ptb":    "discordptb",
+		"canary": "discordcanary",
+		"dev":    "discorddevelopment",
+	}
+
 	for branch, dirname := range macosNames {
 		for _, base := range bases {
 			p := path.Join(base, dirname)
@@ -65,7 +75,50 @@ func FindDiscords() []any {
 				discords = append(discords, discord)
 			}
 		}
+
+		appSupport := path.Join(
+			home,
+			"Library",
+			"Application Support",
+			appSupportNames[branch],
+		)
+
+		entries, err := os.ReadDir(appSupport)
+		if err != nil {
+			continue
+		}
+
+		var latestVersion []int
+		var latestDiscord *DiscordInstall
+
+		for _, entry := range entries {
+			if !entry.IsDir() {
+				continue
+			}
+
+			version := ParseAppVersion(entry.Name())
+			if version == nil {
+				continue
+			}
+
+			p := path.Join(appSupport, entry.Name(), dirname)
+			discord := ParseDiscord(p, branch)
+			if discord == nil {
+				continue
+			}
+
+			if latestDiscord == nil || CompareAppVersion(version, latestVersion) > 0 {
+				latestVersion = version
+				latestDiscord = discord
+			}
+		}
+
+		if latestDiscord != nil {
+			Log.Debug("Found versioned Discord Install at", latestDiscord.path)
+			discords = append(discords, latestDiscord)
+		}
 	}
+
 	return discords
 }
 
