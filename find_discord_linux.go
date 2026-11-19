@@ -18,6 +18,7 @@ import (
 
 var (
 	Home        string
+	ConfigHome  string
 	DiscordDirs []string
 )
 
@@ -50,6 +51,10 @@ func init() {
 		panic("Equilotl was run as root but neither SUDO_USER nor DOAS_USER are set. Please rerun me as a normal user, with sudo/doas, or manually set SUDO_USER to your username")
 	}
 	Home = os.Getenv("HOME")
+	ConfigHome = os.Getenv("XDG_CONFIG_HOME")
+	if ConfigHome == "" {
+		ConfigHome = path.Join(Home, ".config")
+	}
 
 	DiscordDirs = []string{
 		"/usr/share",
@@ -99,10 +104,13 @@ func ParseDiscordNew(p, branch string, isFlatpak bool) *DiscordInstall {
 	isPatched := false
 	resourcesPath := ""
 
-	if target, err := os.Readlink(path.Join(p, "Discord")); err == nil {
-		if r, ip, _, ok := tryAppDir(p, path.Base(path.Dir(target))); ok {
-			resourcesPath = r
-			isPatched = ip
+	for _, exe := range []string{"Discord", "DiscordPTB", "DiscordCanary"} {
+		if target, err := os.Readlink(path.Join(p, exe)); err == nil {
+			if r, ip, _, ok := tryAppDir(p, path.Base(path.Dir(target))); ok {
+				resourcesPath = r
+				isPatched = ip
+			}
+			break
 		}
 	}
 
@@ -209,7 +217,7 @@ func FindDiscords() []any {
 	}
 
 	for _, name := range []string{"discord", "discordcanary", "discordptb"} {
-		discordDir := path.Join(Home, ".config", name)
+		discordDir := path.Join(ConfigHome, name)
 		if !ExistsFile(discordDir) {
 			continue
 		}
