@@ -277,7 +277,7 @@ func PromptDiscord(action, dir, branch string) *DiscordInstall {
 		}).Run()
 		handlePromptError(err)
 
-		if di := ParseDiscordNew(custom, "", strings.Contains(dir, "com.discordapp")); di != nil {
+		if di := ParseDiscordNew(custom, "", strings.Contains(custom, "com.discordapp")); di != nil {
 			return di
 		}
 
