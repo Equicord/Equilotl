@@ -123,6 +123,7 @@ jobs:
         run: |
           go mod vendor
           git apply --ignore-whitespace patches/linux-arm64.patch
+          python .github/scripts/patch-cimgui-char-type.py
 
       - name: Build ARM64 GUI libraries
         run: bash .github/scripts/build-linux-arm64-gui.sh
@@ -419,6 +420,7 @@ jobs:
         run: |
           go mod vendor
           git apply --ignore-whitespace patches/windows-arm64.patch
+          python .github/scripts/patch-cimgui-char-type.py
 
       - name: Build ARM64 GUI libraries
         shell: bash
