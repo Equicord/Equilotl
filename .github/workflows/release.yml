@@ -397,9 +397,38 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-arm64-go-
 
+      - name: Install llvm-mingw
+        shell: pwsh
+        run: |
+          $version = "20260908"
+          $sha256 = "1bcf74d06b724aeecaa6412ca85f5b26fb1da770e7cdcefa9263c9c5c3ad34b6"
+          $zip = "$env:RUNNER_TEMP\llvm-mingw.zip"
+          Invoke-WebRequest "https://github.com/mstorsjo/llvm-mingw/releases/download/$version/llvm-mingw-$version-ucrt-x86_64.zip" -OutFile $zip
+          if ((Get-FileHash $zip -Algorithm SHA256).Hash -ne $sha256) { throw "llvm-mingw checksum mismatch" }
+          Expand-Archive $zip -DestinationPath $env:RUNNER_TEMP
+          "$env:RUNNER_TEMP\llvm-mingw-$version-ucrt-x86_64\bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+
       - name: Install Go dependencies
         shell: bash
-        run: go get -v
+        run: |
+          go get -v
+          go install github.com/tc-hib/go-winres@d743268d7ea168077ddd443c4240562d4f5e8c3e
+
+      - name: Recreate vendor for ARM64 GUI
+        shell: bash
+        run: |
+          go mod vendor
+          git apply patches/windows-arm64.patch
+
+      - name: Build ARM64 GUI libraries
+        shell: bash
+        run: bash .github/scripts/build-windows-arm64-gui.sh
+
+      - name: Build GUI
+        shell: bash
+        run: |
+          "$(go env GOPATH)/bin/go-winres" make --arch arm64 --product-version "git-tag"
+          CGO_ENABLED=1 GOOS=windows GOARCH=arm64 CC=aarch64-w64-mingw32-clang CXX=aarch64-w64-mingw32-clang++ go build -v -tags "static gui" -ldflags "-s -w -H=windowsgui -extldflags=-static -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-arm64.exe
 
       - name: Build CLI
         shell: bash
@@ -411,6 +440,7 @@ jobs:
         with:
           name: Equilotl-windows-arm64
           path: |
+            Equilotl-arm64.exe
             EquilotlCli-arm64.exe
 
   release:
