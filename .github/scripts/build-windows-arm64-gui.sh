@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-go mod download github.com/AllenDang/cimgui-go
-module_dir="$(go list -m -f '{{.Dir}}' github.com/AllenDang/cimgui-go)"
+module_dir="$(go mod download -json github.com/AllenDang/cimgui-go | python -c 'import json,sys; print(json.load(sys.stdin)["Dir"])')"
 if [[ -z "$module_dir" ]]; then
   echo "cimgui-go module directory not found" >&2
   exit 1

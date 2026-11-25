@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-go mod download github.com/AllenDang/cimgui-go
-cimgui="$(go list -m -f '{{.Dir}}' github.com/AllenDang/cimgui-go)"
+cimgui="$(go mod download -json github.com/AllenDang/cimgui-go | python -c 'import json,sys; print(json.load(sys.stdin)["Dir"])')"
 if [[ ! -d "$cimgui/thirdparty/glfw" ]]; then
   echo "cimgui-go source directory not found: $cimgui" >&2
   exit 1
