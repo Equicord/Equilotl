@@ -10,7 +10,6 @@ import (
 	"bytes"
 	"os"
 	"os/exec"
-	"os/user"
 	path "path/filepath"
 	"strconv"
 	"strings"
@@ -56,7 +55,7 @@ func sudoCredential() *syscall.Credential {
 		return nil
 	}
 
-	u, err := user.Lookup(os.Getenv("SUDO_USER"))
+	u, err := lookupUser(os.Getenv("SUDO_USER"))
 	if err != nil {
 		return nil
 	}

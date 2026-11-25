@@ -10,6 +10,7 @@ import (
 	"errors"
 	"io/fs"
 	"os"
+	"os/exec"
 	"os/user"
 	path "path/filepath"
 	"strconv"
@@ -40,7 +41,7 @@ func init() {
 		Log.Debug("Equilotl was run with root privileges, actual user is", sudoUser)
 		Log.Debug("Looking up HOME of", sudoUser)
 
-		u, err := user.Lookup(sudoUser)
+		u, err := lookupUser(sudoUser)
 		if err != nil {
 			Log.Warn("Failed to lookup HOME", err)
 		} else {
@@ -241,6 +242,23 @@ func FindDiscords() []any {
 	return discords
 }
 
+func lookupUser(name string) (*user.User, error) {
+	u, err := user.Lookup(name)
+	if err == nil {
+		return u, nil
+	}
+	out, gerr := exec.Command("getent", "passwd", name).Output()
+	if gerr != nil {
+		return nil, err
+	}
+	line, _, _ := strings.Cut(string(out), "\n")
+	f := strings.Split(line, ":")
+	if len(f) < 7 {
+		return nil, err
+	}
+	return &user.User{Username: f[0], Uid: f[2], Gid: f[3], Name: f[4], HomeDir: f[5]}, nil
+}
+
 func PreparePatch(di *DiscordInstall) {}
 
 // FixOwnership fixes file ownership on Linux
@@ -257,7 +275,7 @@ func FixOwnership(p string) error {
 	}
 
 	Log.Debug("Looking up User", sudoUser)
-	u, err := user.Lookup(sudoUser)
+	u, err := lookupUser(sudoUser)
 	if err != nil {
 		Log.Error("Lookup failed:", err)
 		return err

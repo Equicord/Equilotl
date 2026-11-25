@@ -15,6 +15,9 @@ permissions:
 jobs:
   build-linux:
     runs-on: ubuntu-latest # Go without CGO seems to not depend on glibc, so building on latest should be fine
+    env:
+      CGO_CFLAGS: -O2 -g -march=x86-64 -mtune=generic
+      CGO_CXXFLAGS: -O2 -g -march=x86-64 -mtune=generic
 
     steps:
       - name: Checkout code
@@ -70,7 +73,7 @@ jobs:
 
       - name: Build CLI
         run:
-          CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -v -tags "cli" -ldflags "-s
+          CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -tags "cli" -ldflags "-s
           -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short
           HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o
           EquilotlCli-linux
