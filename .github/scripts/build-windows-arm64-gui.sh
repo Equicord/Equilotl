@@ -1,7 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-cimgui="$(cygpath -u "$(go list -m -f '{{.Dir}}' github.com/AllenDang/cimgui-go)")"
+go mod download github.com/AllenDang/cimgui-go
+module_dir="$(go list -m -f '{{.Dir}}' github.com/AllenDang/cimgui-go)"
+if [[ -z "$module_dir" ]]; then
+  echo "cimgui-go module directory not found" >&2
+  exit 1
+fi
+cimgui="$(cygpath -u "$module_dir")"
+if [[ ! -d "$cimgui/thirdparty/glfw" ]]; then
+  echo "cimgui-go source directory not found: $cimgui" >&2
+  exit 1
+fi
 temp_dir="$(cygpath -u "$RUNNER_TEMP")"
 workspace="$(cygpath -u "$GITHUB_WORKSPACE")"
 glfw_build="$temp_dir/glfw-arm64"

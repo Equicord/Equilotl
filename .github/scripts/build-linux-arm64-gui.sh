@@ -1,7 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+go mod download github.com/AllenDang/cimgui-go
 cimgui="$(go list -m -f '{{.Dir}}' github.com/AllenDang/cimgui-go)"
+if [[ ! -d "$cimgui/thirdparty/glfw" ]]; then
+  echo "cimgui-go source directory not found: $cimgui" >&2
+  exit 1
+fi
 glfw_build="$RUNNER_TEMP/glfw-arm64"
 cimgui_build="$RUNNER_TEMP/cimgui-arm64"
 arm64_lib="$GITHUB_WORKSPACE/vendor/github.com/AllenDang/cimgui-go/lib/linux/arm64"

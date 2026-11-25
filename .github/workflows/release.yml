@@ -122,7 +122,7 @@ jobs:
       - name: Recreate vendor dependencies
         run: |
           go mod vendor
-          git apply patches/linux-arm64.patch
+          git apply --ignore-whitespace patches/linux-arm64.patch
 
       - name: Build ARM64 GUI libraries
         run: bash .github/scripts/build-linux-arm64-gui.sh
@@ -418,7 +418,7 @@ jobs:
         shell: bash
         run: |
           go mod vendor
-          git apply patches/windows-arm64.patch
+          git apply --ignore-whitespace patches/windows-arm64.patch
 
       - name: Build ARM64 GUI libraries
         shell: bash
