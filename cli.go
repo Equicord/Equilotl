@@ -97,7 +97,7 @@ func main() {
 		fmt.Println(
 			styleBoldCyan.Sprint("Equilotl Cli"),
 			styleGreen.Sprint(buildinfo.InstallerTag),
-			styleFaint.Sprint("("+buildinfo.InstallerGitHash+")"),
+			styleFaint.Sprint("("+ShortHash(buildinfo.InstallerGitHash)+")"),
 		)
 		fmt.Println("Copyright (C) 2026 Vendicated, thororen1234, Vencord, and Equicord contributors")
 		fmt.Println("License GPLv3+: GNU GPL version 3 or later <https://gnu.org/licenses/gpl.html>.")

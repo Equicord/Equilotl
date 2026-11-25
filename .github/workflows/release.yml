@@ -53,7 +53,7 @@ jobs:
       - name: Build GUI (X11)
         run:
           CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -v -tags static -ldflags "-s
-          -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short
+          -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse
           HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o
           Equilotl-x11
 
@@ -61,20 +61,20 @@ jobs:
         run:
           CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -v -tags "static wayland"
           -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git
-          rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{
+          rev-parse HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{
           github.ref_name }}'" -o Equilotl-wayland
 
       - name: Build GUI (Combined)
         run:
           CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -v -tags "static combined"
           -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git
-          rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{
+          rev-parse HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{
           github.ref_name }}'" -o Equilotl
 
       - name: Build CLI
         run:
           CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -v -tags "cli" -ldflags "-s
-          -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short
+          -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse
           HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o
           EquilotlCli-linux
 
@@ -127,16 +127,16 @@ jobs:
           git apply patches/wayland.patch
 
       - name: Build GUI (X11)
-        run: CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -v -tags static -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-x11-arm64
+        run: CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -v -tags static -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-x11-arm64
 
       - name: Build GUI (Wayland)
-        run: CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -v -tags "static wayland" -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-wayland-arm64
+        run: CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -v -tags "static wayland" -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-wayland-arm64
 
       - name: Build GUI (Combined)
-        run: CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -v -tags "static combined" -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-arm64
+        run: CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -v -tags "static combined" -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-arm64
 
       - name: Build CLI
-        run: CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -v -tags "cli" -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli-linux-arm64
+        run: CGO_ENABLED=1 GOOS=linux GOARCH=arm64 go build -v -tags "cli" -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli-linux-arm64
 
       - name: Update executable
         run: |
@@ -358,12 +358,12 @@ jobs:
         shell: msys2 {0}
         run: |
           go-winres make --product-version "git-tag"
-          CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -v -tags "static gui" -ldflags "-s -w -H=windowsgui -extldflags=-static -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl.exe
+          CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -v -tags "static gui" -ldflags "-s -w -H=windowsgui -extldflags=-static -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl.exe
 
       - name: Build CLI
         shell: msys2 {0}
         run: |
-          CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -v -tags "cli" -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli.exe
+          CGO_ENABLED=1 GOOS=windows GOARCH=amd64 go build -v -tags "cli" -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli.exe
           cp EquilotlCli.exe EquilotlCli-x64.exe # Explicit arch in the name, winget picks installers by it
 
       - name: Upload artifact
@@ -418,12 +418,12 @@ jobs:
         shell: bash
         run: |
           "$(go env GOPATH)/bin/go-winres" make --arch arm64 --product-version "git-tag"
-          CGO_ENABLED=1 GOOS=windows GOARCH=arm64 CC=aarch64-w64-mingw32-clang CXX=aarch64-w64-mingw32-clang++ go build -v -tags "static gui" -ldflags "-s -w -H=windowsgui -extldflags=-static -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-arm64.exe
+          CGO_ENABLED=1 GOOS=windows GOARCH=arm64 CC=aarch64-w64-mingw32-clang CXX=aarch64-w64-mingw32-clang++ go build -v -tags "static gui" -ldflags "-s -w -H=windowsgui -extldflags=-static -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o Equilotl-arm64.exe
 
       - name: Build CLI
         shell: bash
         run: |
-          CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -v -tags "cli" -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse --short HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli-arm64.exe
+          CGO_ENABLED=0 GOOS=windows GOARCH=arm64 go build -v -tags "cli" -ldflags "-s -w -X 'equilotl/buildinfo.InstallerGitHash=$(git rev-parse HEAD)' -X 'equilotl/buildinfo.InstallerTag=${{ github.ref_name }}'" -o EquilotlCli-arm64.exe
 
       - name: Upload artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1

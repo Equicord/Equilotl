@@ -62,6 +62,13 @@ func IsDirectory(path string) bool {
 	return s.IsDir()
 }
 
+func ShortHash(hash string) string {
+	if len(hash) > 9 {
+		return hash[:9]
+	}
+	return hash
+}
+
 func Ternary[T any](b bool, ifTrue, ifFalse T) T {
 	if b {
 		return ifTrue

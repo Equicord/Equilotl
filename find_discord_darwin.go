@@ -59,7 +59,8 @@ func FindDiscords() []any {
 	}
 	supportBase := path.Join(os.Getenv("HOME"), "Library", "Application Support")
 
-	for branch, dirname := range macosNames {
+	for _, branch := range []string{"stable", "ptb", "canary", "dev"} {
+		dirname := macosNames[branch]
 		foundInApps := false
 
 		for _, base := range bases {

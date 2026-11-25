@@ -11,7 +11,10 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/fatih/color"
@@ -37,7 +40,17 @@ func runProgram(model tea.Model) (tea.Model, error) {
 	Log.Pause()
 	defer Log.Resume()
 
-	return tea.NewProgram(model).Run()
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGTERM)
+	defer signal.Stop(sig)
+
+	m, err := tea.NewProgram(model).Run()
+	select {
+	case <-sig:
+		os.Exit(1)
+	default:
+	}
+	return m, err
 }
 
 type selectItem struct {

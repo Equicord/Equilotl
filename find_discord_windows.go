@@ -88,8 +88,8 @@ func FindDiscords() []any {
 		return discords
 	}
 
-	for branch, dirname := range windowsNames {
-		p := path.Join(appData, dirname)
+	for _, branch := range []string{"stable", "ptb", "canary", "dev"} {
+		p := path.Join(appData, windowsNames[branch])
 		if discord := ParseDiscord(p, branch); discord != nil {
 			Log.Debug("Found Discord install at ", p)
 			discords = append(discords, discord)

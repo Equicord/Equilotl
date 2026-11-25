@@ -27,6 +27,7 @@ import (
 	g "github.com/AllenDang/giu"
 	"github.com/AllenDang/imgui-go"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	"golang.org/x/image/draw"
 
 	// png decoder for icon
 	_ "image/png"
@@ -62,6 +63,14 @@ var (
 
 	githubDone atomic.Bool
 	appIcon    image.Image
+
+	appIconTex     *g.Texture
+	appIconTexSize int
+
+	windowDrag      int
+	windowDragStart [2]float64
+	windowDragPos   [2]int
+	windowDragSize  [2]int
 
 	win *g.MasterWindow
 
@@ -234,7 +243,7 @@ func main() {
 		os.Setenv("GDK_DPI_SCALE", "1")
 	}
 
-	win = g.NewMasterWindow("Equilotl", 1200, 800, 0)
+	win = g.NewMasterWindow("Equilotl", 1200, 800, Ternary(nativeTitleBar, g.MasterWindowFlags(0), g.MasterWindowFlagsFrameless))
 	win.SetSizeLimits(800, 580, g.DontCare, g.DontCare)
 	win.SetInputHandler(&zoomInputHandler{base: g.Context.InputHandler})
 	applyTheme(win)
@@ -926,7 +935,7 @@ func renderHeaderMetadata() g.Widget {
 		}
 		hash := buildinfo.InstallerGitHash
 		url := installerCommitUrl(hash)
-		items = append(items, rowAlignedLink(hash, "Open Installer commit "+hash+" on GitHub", metaSemi, padX, padY, func() {
+		items = append(items, rowAlignedLink(ShortHash(hash), "Open Installer commit "+ShortHash(hash)+" on GitHub", metaSemi, padX, padY, func() {
 			g.OpenURL(url)
 		}))
 		hasInstallerMeta = true
@@ -945,7 +954,7 @@ func renderHeaderMetadata() g.Widget {
 		url := equicordCommitUrl(hash)
 		buildItems = append(buildItems,
 			rowAlignedLabel("Latest Equicord:", ThemeGrey2, metaFont),
-			rowAlignedLink(hash, "Open Equicord commit "+hash+" on GitHub", metaSemi, padX, padY, func() {
+			rowAlignedLink(ShortHash(hash), "Open Equicord commit "+ShortHash(hash)+" on GitHub", metaSemi, padX, padY, func() {
 				g.OpenURL(url)
 			}),
 		)
@@ -957,7 +966,7 @@ func renderHeaderMetadata() g.Widget {
 			buildItems = append(buildItems,
 				rowAlignedLabel("|", ThemeGrey0, metaFont),
 				rowAlignedLabel("Installed:", ThemeGrey2, metaFont),
-				rowAlignedLink(installed, "Open installed Equicord commit "+installed+" on GitHub", metaSemi, padX, padY, func() {
+				rowAlignedLink(ShortHash(installed), "Open installed Equicord commit "+ShortHash(installed)+" on GitHub", metaSemi, padX, padY, func() {
 					g.OpenURL(installedUrl)
 				}),
 			)
@@ -1005,14 +1014,23 @@ func renderHeader() g.Widget {
 				iconY = snap(startY + (stackH-iconSize)/2)
 			}
 			imgui.SetCursorPos(imgui.Vec2{X: startX, Y: iconY})
-			g.ImageWithRgba(appIcon).Size(iconSize, iconSize).Build()
+			if px := int(iconSize * uiPixelScale); px != appIconTexSize {
+				appIconTexSize = px
+				scaledIcon := image.NewRGBA(image.Rect(0, 0, px, px))
+				draw.CatmullRom.Scale(scaledIcon, scaledIcon.Bounds(), appIcon, appIcon.Bounds(), draw.Src, nil)
+				g.NewTextureFromRgba(scaledIcon, func(t *g.Texture) {
+					appIconTex = t
+					g.Update()
+				})
+			}
+			g.Image(appIconTex).Size(iconSize, iconSize).Build()
 
 			imgui.SetCursorPos(imgui.Vec2{X: startX + iconSize + scaled(16), Y: startY})
 		}
 
 		g.Column(
 			g.Style().
-				SetColor(g.StyleColorText, ThemeAccentPurple).
+				SetColor(g.StyleColorText, ThemeFg1).
 				SetFont(fontSemiBold(40)).
 				To(g.Label("Equilotl")),
 			renderHeaderMetadata(),
@@ -1255,13 +1273,12 @@ func renderActionButtons(currentDiscord *DiscordInstall, isOpenAsar bool) g.Widg
 		}
 
 		openAsarLabel := Ternary(isOpenAsar, "Uninstall OpenAsar", Ternary(currentDiscord != nil, "Install OpenAsar", "(Un-)Install OpenAsar"))
-		openAsarColor := Ternary(isOpenAsar, ThemeAccentRed, ThemeAccentAqua)
 		openAsarTip := Ternary(isOpenAsar, "Restore Discord's original app.asar", "Install OpenAsar for faster startup & performance")
 
 		g.Style().SetFont(fontSemiBold(20)).To(
 			g.Row(
-				accentButton("Install", ThemeAccentGreen, btnW, btnH, installDisabled, installTip, handlePatch),
-				accentButton("Reinstall / Repair", ThemeAccentBlue, btnW, btnH, installDisabled, repairTip, func() {
+				accentButton("Install", ThemeFg1, btnW, btnH, installDisabled, installTip, handlePatch),
+				secondaryButton("Reinstall / Repair", btnW, btnH, installDisabled, repairTip, func() {
 					if IsDevInstall {
 						handlePatch()
 					} else {
@@ -1271,8 +1288,8 @@ func renderActionButtons(currentDiscord *DiscordInstall, isOpenAsar bool) g.Widg
 						}
 					}
 				}),
-				accentButton("Uninstall", ThemeAccentRed, btnW, btnH, actionDisabled, "Remove Equicord from the selected Discord install", handleUnpatch),
-				accentButton(openAsarLabel, openAsarColor, btnW, btnH, actionDisabled, openAsarTip, handleOpenAsar),
+				secondaryButton("Uninstall", btnW, btnH, actionDisabled, "Remove Equicord from the selected Discord install", handleUnpatch),
+				secondaryButton(openAsarLabel, btnW, btnH, actionDisabled, openAsarTip, handleOpenAsar),
 			),
 		).Build()
 	})
@@ -1339,7 +1356,7 @@ func renderInstaller() g.Widget {
 		renderCalloutCard(
 			"OfficialDownloadNoticeCard",
 			ThemeAccentYellow,
-			ThemeBgVisualYellow,
+			ThemeBgCurrentWord,
 			"Official Download Notice",
 			"GitHub and equicord.org are the only official places to get Equicord. Any other site claiming to be us is malicious.\n"+
 				"If you downloaded from any other source, delete / uninstall everything immediately, run a malware scan, and change your Discord password.",
@@ -1409,6 +1426,184 @@ func loop() {
 			}},
 		).
 		Layout(
+			g.Custom(func() {
+				pos, size := imgui.WindowPos(), imgui.WindowSize()
+				dl := imgui.GetWindowDrawList()
+				imgui.PushClipRect(pos, imgui.Vec2{X: pos.X + size.X, Y: pos.Y + size.Y}, false)
+				defer imgui.PopClipRect()
+				const bands = 32
+				t := func(p imgui.Vec2) float32 {
+					return ((p.X-pos.X)/size.X + (p.Y-pos.Y)/size.Y) / 2
+				}
+				for k := 0; k < bands; k++ {
+					lo, hi := float32(k)/bands, float32(k+1)/bands
+					poly := []imgui.Vec2{pos, {X: pos.X + size.X, Y: pos.Y}, {X: pos.X + size.X, Y: pos.Y + size.Y}, {X: pos.X, Y: pos.Y + size.Y}}
+					for _, edge := range []float32{lo, -hi} {
+						var out []imgui.Vec2
+						for i, a := range poly {
+							b := poly[(i+1)%len(poly)]
+							da, db := t(a)-edge, t(b)-edge
+							if edge < 0 {
+								da, db = -t(a)-edge, -t(b)-edge
+							}
+							if da >= 0 {
+								out = append(out, a)
+							}
+							if (da >= 0) != (db >= 0) {
+								f := da / (da - db)
+								out = append(out, imgui.Vec2{X: a.X + (b.X-a.X)*f, Y: a.Y + (b.Y-a.Y)*f})
+							}
+						}
+						poly = out
+					}
+					if len(poly) < 3 {
+						continue
+					}
+					dl.PathClear()
+					for _, p := range poly {
+						dl.PathLineTo(p)
+					}
+					dl.PathFillConvex(g.ToVec4Color(blendColor(ThemeBg1, ThemeBgCurrentWord, (lo+hi)/2)))
+				}
+			}),
+			g.Custom(func() {
+				if nativeTitleBar {
+					return
+				}
+				gw := glfw.GetCurrentContext()
+				cx, cy := gw.GetCursorPos()
+				wx, wy := gw.GetPos()
+				ww, wh := gw.GetSize()
+				sx, sy := float64(wx)+cx, float64(wy)+cy
+				maximized := gw.GetAttrib(glfw.Maximized) == glfw.True
+				pos, size := imgui.WindowPos(), imgui.WindowSize()
+				start := imgui.CursorPos()
+				barH, btnW := scaled(36), scaled(46)
+				dl := imgui.GetWindowDrawList()
+				imgui.PushClipRect(pos, imgui.Vec2{X: pos.X + size.X, Y: pos.Y + size.Y}, false)
+				defer imgui.PopClipRect()
+
+				if windowDrag != 0 {
+					if gw.GetMouseButton(glfw.MouseButtonLeft) != glfw.Press {
+						windowDrag = 0
+					} else if dx, dy := int(sx-windowDragStart[0]), int(sy-windowDragStart[1]); windowDrag < 0 {
+						gw.SetPos(windowDragPos[0]+dx, windowDragPos[1]+dy)
+					} else {
+						x, y, w, h := windowDragPos[0], windowDragPos[1], windowDragSize[0], windowDragSize[1]
+						if windowDrag&1 != 0 {
+							x, w = x+dx, w-dx
+						}
+						if windowDrag&2 != 0 {
+							w += dx
+						}
+						if windowDrag&4 != 0 {
+							y, h = y+dy, h-dy
+						}
+						if windowDrag&8 != 0 {
+							h += dy
+						}
+						if w < 800 {
+							if windowDrag&1 != 0 {
+								x -= 800 - w
+							}
+							w = 800
+						}
+						if h < 580 {
+							if windowDrag&4 != 0 {
+								y -= 580 - h
+							}
+							h = 580
+						}
+						gw.SetPos(x, y)
+						gw.SetSize(w, h)
+					}
+				}
+
+				edge := 0
+				if !maximized && cx >= 0 && cy >= 0 && cx < float64(ww) && cy < float64(wh) {
+					m := float64(scaled(6))
+					if cx < m {
+						edge |= 1
+					} else if cx > float64(ww)-m {
+						edge |= 2
+					}
+					if cy < m {
+						edge |= 4
+					} else if cy > float64(wh)-m {
+						edge |= 8
+					}
+				}
+				switch cursor := Ternary(windowDrag > 0, windowDrag, edge); {
+				case cursor == 5 || cursor == 10:
+					imgui.SetMouseCursor(imgui.MouseCursorResizeNWSE)
+				case cursor == 6 || cursor == 9:
+					imgui.SetMouseCursor(imgui.MouseCursorResizeNESW)
+				case cursor&3 != 0:
+					imgui.SetMouseCursor(imgui.MouseCursorResizeEW)
+				case cursor&12 != 0:
+					imgui.SetMouseCursor(imgui.MouseCursorResizeNS)
+				}
+
+				imgui.SetCursorScreenPos(pos)
+				imgui.InvisibleButton("##titlebar", imgui.Vec2{X: size.X - 3*btnW, Y: barH})
+				switch {
+				case windowDrag != 0 || !imgui.IsMouseClicked(0):
+				case edge != 0:
+					windowDrag = edge
+				case imgui.IsItemHovered() && imgui.IsMouseDoubleClicked(0):
+					if maximized {
+						gw.Restore()
+					} else {
+						gw.Maximize()
+					}
+				case imgui.IsItemHovered() && !maximized:
+					windowDrag = -1
+				}
+				if windowDrag != 0 && imgui.IsMouseClicked(0) {
+					windowDragStart = [2]float64{sx, sy}
+					windowDragPos = [2]int{wx, wy}
+					windowDragSize = [2]int{ww, wh}
+				}
+
+				iconCol := g.ToVec4Color(ThemeFg0)
+				for i, id := range []string{"##minimize", "##maximize", "##close"} {
+					x := pos.X + size.X - btnW*float32(3-i)
+					imgui.SetCursorScreenPos(imgui.Vec2{X: x, Y: pos.Y})
+					clicked := imgui.InvisibleButton(id, imgui.Vec2{X: btnW, Y: barH})
+					hovered := imgui.IsItemHovered()
+					if hovered {
+						dl.AddRectFilled(imgui.Vec2{X: x, Y: pos.Y}, imgui.Vec2{X: x + btnW, Y: pos.Y + barH}, g.ToVec4Color(Ternary(i == 2, ThemeAccentRed, ThemeBg3)), 0, 0)
+					}
+					mx, my, r := snap(x+btnW/2), snap(pos.Y+barH/2), scaled(5)
+					switch i {
+					case 0:
+						dl.AddLine(imgui.Vec2{X: mx - r, Y: my}, imgui.Vec2{X: mx + r, Y: my}, iconCol, 1)
+						if clicked {
+							gw.Iconify()
+						}
+					case 1:
+						dl.AddRect(imgui.Vec2{X: mx - r, Y: my - r}, imgui.Vec2{X: mx + r + 1, Y: my + r + 1}, iconCol, 0, 0, 1)
+						if clicked {
+							if maximized {
+								gw.Restore()
+							} else {
+								gw.Maximize()
+							}
+						}
+					case 2:
+						xCol := Ternary(hovered, g.ToVec4Color(ThemeFg1), iconCol)
+						for d := -r; d <= r; d++ {
+							dl.AddRectFilled(imgui.Vec2{X: mx + d, Y: my + d}, imgui.Vec2{X: mx + d + 1, Y: my + d + 1}, xCol, 0, 0)
+							dl.AddRectFilled(imgui.Vec2{X: mx + d, Y: my - d}, imgui.Vec2{X: mx + d + 1, Y: my - d + 1}, xCol, 0, 0)
+						}
+						if clicked {
+							win.SetShouldClose(true)
+						}
+					}
+				}
+
+				imgui.SetCursorPos(imgui.Vec2{X: start.X, Y: start.Y + barH - scaled(24)})
+			}),
 			g.Style().SetFont(fontRegular(20)).To(
 				renderHeader(),
 				g.Dummy(0, scaled(16)),

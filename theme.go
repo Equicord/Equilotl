@@ -32,10 +32,10 @@ var (
 	ThemeBg3           = color.RGBA{0x26, 0x26, 0x26, 0xff}
 	ThemeBg5           = color.RGBA{0x40, 0x40, 0x40, 0xff}
 
-	ThemeBgVisualYellow = color.RGBA{0x43, 0x20, 0x04, 0xff}
-	ThemeBgVisualGreen  = color.RGBA{0x03, 0x2e, 0x15, 0xff}
-	ThemeBgVisualBlue   = color.RGBA{0x16, 0x24, 0x56, 0xff}
-	ThemeBgVisualRed    = color.RGBA{0x46, 0x08, 0x09, 0xff}
+	ThemeBgVisualYellow = color.RGBA{0x1b, 0x11, 0x08, 0xff}
+	ThemeBgVisualGreen  = color.RGBA{0x08, 0x15, 0x0d, 0xff}
+	ThemeBgVisualBlue   = color.RGBA{0x0e, 0x12, 0x21, 0xff}
+	ThemeBgVisualRed    = color.RGBA{0x1c, 0x09, 0x0a, 0xff}
 
 	ThemeFg0       = color.RGBA{0xe5, 0xe5, 0xe5, 0xff}
 	ThemeFg1       = color.RGBA{0xff, 0xff, 0xff, 0xff}
@@ -45,13 +45,13 @@ var (
 	ThemeGrey1     = color.RGBA{0xa1, 0xa1, 0xa1, 0xff}
 	ThemeGrey2     = color.RGBA{0xd4, 0xd4, 0xd4, 0xff}
 
-	ThemeAccentPurple = color.RGBA{0x54, 0xa2, 0xff, 0xff}
+	ThemeAccentPurple = color.RGBA{0x21, 0x6b, 0xff, 0xff}
 	ThemeAccentRed    = color.RGBA{0xff, 0x65, 0x68, 0xff}
 	ThemeAccentOrange = color.RGBA{0xff, 0xb9, 0x6d, 0xff}
-	ThemeAccentYellow = color.RGBA{0xff, 0xd2, 0x36, 0xff}
-	ThemeAccentGreen  = color.RGBA{0x05, 0xdf, 0x72, 0xff}
+	ThemeAccentYellow = color.RGBA{0xff, 0xf0, 0x85, 0xff}
+	ThemeAccentGreen  = color.RGBA{0x7b, 0xf1, 0xa8, 0xff}
 	ThemeAccentAqua   = color.RGBA{0x7b, 0xf1, 0xa8, 0xff}
-	ThemeAccentBlue   = color.RGBA{0x00, 0xbc, 0xfe, 0xff}
+	ThemeAccentBlue   = color.RGBA{0x90, 0xc5, 0xff, 0xff}
 
 	ThemeModalDimBg = color.RGBA{0x00, 0x00, 0x00, 0xc0}
 	ThemeSelection  = color.RGBA{0x21, 0x6b, 0xff, 0x4d}
@@ -250,7 +250,7 @@ func applyTheme(w *g.MasterWindow) {
 	set(imgui.StyleColorScrollbarGrabActive, ThemeGrey0)
 
 	// Interactive controls (checkmarks, sliders, default secondary buttons)
-	set(imgui.StyleColorCheckMark, ThemeAccentPurple)
+	set(imgui.StyleColorCheckMark, ThemeFg1)
 	set(imgui.StyleColorSliderGrab, ThemeAccentPurple)
 	set(imgui.StyleColorSliderGrabActive, ThemeFg1)
 
@@ -323,7 +323,7 @@ func accentButton(label string, accent color.RGBA, width, height float32, disabl
 		SetColor(g.StyleColorButton, accent).
 		SetColor(g.StyleColorButtonHovered, accentHover(accent)).
 		SetColor(g.StyleColorButtonActive, accentActive(accent)).
-		SetColor(g.StyleColorText, ThemeBg0).
+		SetColor(g.StyleColorText, Ternary(0.2126*float32(accent.R)+0.7152*float32(accent.G)+0.0722*float32(accent.B) < 140, ThemeFg1, ThemeBg0)).
 		SetStyleFloat(g.StyleVarFrameRounding, scaled(10)).
 		SetStyleFloat(g.StyleVarFrameBorderSize, 0).
 		SetDisabled(disabled).
@@ -342,13 +342,13 @@ func secondaryButton(label string, width, height float32, disabled bool, tip str
 	}
 
 	return g.Style().
-		SetColor(g.StyleColorButton, ThemeBg3).
-		SetColor(g.StyleColorButtonHovered, ThemeBg5).
-		SetColor(g.StyleColorButtonActive, ThemeBgCurrentWord).
-		SetColor(g.StyleColorBorder, ThemeFg0Muted).
-		SetColor(g.StyleColorText, ThemeFg0).
+		SetColor(g.StyleColorButton, ThemeBgCurrentWord).
+		SetColor(g.StyleColorButtonHovered, ThemeBg3).
+		SetColor(g.StyleColorButtonActive, ThemeBg5).
+		SetColor(g.StyleColorBorder, ThemeFg0Muted2).
+		SetColor(g.StyleColorText, ThemeGrey2).
 		SetStyleFloat(g.StyleVarFrameRounding, scaled(10)).
-		SetStyleFloat(g.StyleVarFrameBorderSize, 1.5).
+		SetStyleFloat(g.StyleVarFrameBorderSize, 1).
 		SetDisabled(disabled).
 		To(widgets...)
 }
@@ -359,9 +359,9 @@ func buildInlineActionLink(label, tip string, padX, padY float32, onClick func()
 	var width float32
 	g.Style().
 		SetColor(g.StyleColorButton, color.RGBA{0, 0, 0, 0}).
-		SetColor(g.StyleColorButtonHovered, withAlpha(ThemeAccentBlue, 0x28)).
-		SetColor(g.StyleColorButtonActive, withAlpha(ThemeAccentBlue, 0x40)).
-		SetColor(g.StyleColorText, ThemeAccentBlue).
+		SetColor(g.StyleColorButtonHovered, withAlpha(ThemeFg1, 0x28)).
+		SetColor(g.StyleColorButtonActive, withAlpha(ThemeFg1, 0x40)).
+		SetColor(g.StyleColorText, ThemeFg1).
 		SetStyleFloat(g.StyleVarFrameRounding, scaled(6)).
 		SetStyleFloat(g.StyleVarFrameBorderSize, 0).
 		SetStyle(g.StyleVarFramePadding, padX, padY).
@@ -551,7 +551,7 @@ func renderCalloutCard(id string, borderColor, bgColor color.RGBA, title, body s
 	if body != "" {
 		content = append(content,
 			g.Style().
-				SetColor(g.StyleColorText, ThemeFg1).
+				SetColor(g.StyleColorText, ThemeGrey2).
 				SetFont(fontRegular(20)).
 				To(g.Label(body).Wrapped(true)),
 		)
@@ -563,8 +563,8 @@ func renderCalloutCard(id string, borderColor, bgColor color.RGBA, title, body s
 	return renderAutoHeightCard(
 		id,
 		bgColor,
-		borderColor,
-		2,
+		ThemeBg3,
+		1,
 		scaled(12),
 		scaled(18),
 		scaled(14),

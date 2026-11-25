@@ -13,7 +13,7 @@ GUI 		?= 0
 DMG 		?= 0
 WAYLAND 	?= 0
 
-LDFLAGS 	?= -s -w -X 'equilotl/buildinfo.InstallerGitHash=$(HASH)' -X 'equilotl/buildinfo.InstallerTag=$(VERSION)'
+LDFLAGS 	?= -s -w -X 'equilotl/buildinfo.InstallerGitHash=$(shell git rev-parse HEAD)' -X 'equilotl/buildinfo.InstallerTag=$(VERSION)'
 TAGS    	?= static
 CGO 		:= 0
 POSTFIX 	:=
