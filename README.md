@@ -74,7 +74,28 @@ go mod tidy
 
 #### Build the GUI
 
-##### Windows / Mac / Linux X11
+##### Windows
+
+Install [MSYS2](https://www.msys2.org), open the **MSYS2 MINGW64** shell and run:
+
+```sh
+pacman -S --needed git make mingw-w64-x86_64-gcc mingw-w64-x86_64-go
+go install github.com/tc-hib/go-winres@v0.3.3
+export PATH="$PATH:$(go env GOPATH)/bin"
+make GUI=1
+make GUI=0
+```
+
+This writes `build/Equilotl.exe` and `build/EquilotlCli.exe`. For ARM64, install `mingw-w64-clang-aarch64-clang` and run `make GUI=1 ARCH=arm64 CC=aarch64-w64-mingw32-clang CXX=aarch64-w64-mingw32-clang++`.
+
+If you'd rather not use MSYS2, any MinGW toolchain works by pointing cgo at it, for example LLVM's clang with a MinGW sysroot:
+
+```sh
+CGO_LDFLAGS=-lwinpthread CC="clang --target=x86_64-w64-windows-gnu" CXX="clang++ --target=x86_64-w64-windows-gnu" \
+  CGO_ENABLED=1 go build -tags "static gui" -ldflags "-s -w -H=windowsgui -extldflags=-static" -o Equilotl.exe
+```
+
+##### Mac / Linux X11
 
 ```sh
 make GUI=1

@@ -7,6 +7,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,7 +16,6 @@ import (
 	path "path/filepath"
 	"regexp"
 	"strconv"
-	"strings"
 )
 
 type GithubRelease struct {
@@ -70,15 +70,9 @@ func GetGithubRelease(url, fallbackUrl string) (*GithubRelease, error) {
 	return &data, nil
 }
 
-func InitGithubDownloader() {
+func FetchGithubRelease() {
 	GithubDoneChan = make(chan bool, 1)
-
-	IsDevInstall = os.Getenv("EQUICORD_DEV_INSTALL") == "1"
-	Log.Debug("Is Dev Install: ", IsDevInstall)
-	if IsDevInstall {
-		GithubDoneChan <- true
-		return
-	}
+	GithubError = nil
 
 	go func() {
 		// Make sure UI updates once the request either finished or failed
@@ -94,11 +88,37 @@ func InitGithubDownloader() {
 
 		ReleaseData = *data
 
-		i := strings.LastIndex(data.Name, " ") + 1
-		LatestHash = data.Name[i:]
+		for _, ass := range data.Assets {
+			if ass.Name != "preload.js" {
+				continue
+			}
+			res, err := httpGet(ass.DownloadURL)
+			if err != nil {
+				Log.Warn("Failed to fetch latest Equicord hash:", err)
+				break
+			}
+			line, _ := bufio.NewReader(res.Body).ReadString('\n')
+			res.Body.Close()
+			if match := regexp.MustCompile(`// Equicord (\w+)`).FindStringSubmatch(line); match != nil {
+				LatestHash = match[1]
+			}
+			break
+		}
 		Log.Debug("Finished fetching GitHub Data")
 		Log.Debug("Latest hash is", LatestHash, "Local Install is", Ternary(LatestHash == InstalledHash, "up to date!", "outdated!"))
 	}()
+}
+
+func InitGithubDownloader() {
+	IsDevInstall = os.Getenv("EQUICORD_DEV_INSTALL") == "1"
+	Log.Debug("Is Dev Install: ", IsDevInstall)
+	if IsDevInstall {
+		GithubDoneChan = make(chan bool, 1)
+		GithubDoneChan <- true
+		return
+	}
+
+	FetchGithubRelease()
 
 	// either .asar file or directory with main.js file (in DEV)
 	EquicordFile := EquicordDirectory
