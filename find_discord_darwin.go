@@ -61,31 +61,38 @@ func FindDiscords() []any {
 
 	for _, branch := range []string{"stable", "ptb", "canary", "dev"} {
 		dirname := macosNames[branch]
-		foundInApps := false
+
+		branchDir := "discord" + branch
+		if branch == "stable" {
+			branchDir = "discord"
+		} else if branch == "dev" {
+			branchDir = "discorddevelopment"
+		}
+
+		matches, err := path.Glob(path.Join(supportBase, branchDir, "app-*", dirname))
+		if err == nil {
+			var latest *DiscordInstall
+			var latestVer []int
+			for _, match := range matches {
+				ver := ParseAppVersion(path.Base(path.Dir(match)))
+				if ver == nil {
+					continue
+				}
+				if discord := ParseDiscord(match, branch); discord != nil && (latest == nil || CompareAppVersion(ver, latestVer) > 0) {
+					latest, latestVer = discord, ver
+				}
+			}
+			if latest != nil {
+				Log.Debug("Found Discord Install at", latest.path)
+				discords = append(discords, latest)
+			}
+		}
 
 		for _, base := range bases {
 			p := path.Join(base, dirname)
 			if discord := ParseDiscord(p, branch); discord != nil {
 				Log.Debug("Found Discord Install at", p)
 				discords = append(discords, discord)
-				foundInApps = true
-			}
-		}
-
-		if !foundInApps {
-			branchDir := "discord" + branch
-			if branch == "stable" {
-				branchDir = "discord"
-			}
-
-			matches, err := path.Glob(path.Join(supportBase, branchDir, "app-*", dirname))
-			if err == nil {
-				for _, match := range matches {
-					if discord := ParseDiscord(match, branch); discord != nil {
-						Log.Debug("Found Discord Install at", match)
-						discords = append(discords, discord)
-					}
-				}
 			}
 		}
 	}
