@@ -13,3 +13,13 @@ for old, new in (
         raise SystemExit(f"cimgui-go string helper signature not found: {old.decode()}")
 
 source.write_bytes(content)
+
+source = Path("vendor/github.com/AllenDang/cimgui-go/imgui/funcs.go")
+content = source.read_bytes()
+old = b"(*int8)(result.Data)"
+new = b"internal.ReinterpretCast[*int8](result.Data)"
+if old in content:
+    content = content.replace(old, new)
+elif new not in content:
+    raise SystemExit("cimgui-go C.char vector casts not found")
+source.write_bytes(content)
