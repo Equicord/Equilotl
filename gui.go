@@ -1530,8 +1530,15 @@ func loop() {
 					imgui.SetMouseCursor(imgui.MouseCursorResizeNS)
 				}
 
-				imgui.SetCursorScreenPos(pos)
-				imgui.InvisibleButton("##titlebar", imgui.Vec2{X: size.X - 3*btnW, Y: barH})
+				macOS := runtime.GOOS == "darwin"
+				titlebarStart := pos.X
+				titlebarWidth := size.X - 3*btnW
+				if macOS {
+					titlebarStart += scaled(78)
+					titlebarWidth = size.X - scaled(78)
+				}
+				imgui.SetCursorScreenPos(imgui.Vec2{X: titlebarStart, Y: pos.Y})
+				imgui.InvisibleButton("##titlebar", imgui.Vec2{X: titlebarWidth, Y: barH})
 				switch {
 				case windowDrag != 0 || !imgui.IsMouseClickedBool(imgui.MouseButtonLeft):
 				case edge != 0:
@@ -1552,38 +1559,95 @@ func loop() {
 				}
 
 				iconCol := g.ColorToUint(ThemeFg0)
-				for i, id := range []string{"##minimize", "##maximize", "##close"} {
-					x := pos.X + size.X - btnW*float32(3-i)
-					imgui.SetCursorScreenPos(imgui.Vec2{X: x, Y: pos.Y})
-					clicked := imgui.InvisibleButton(id, imgui.Vec2{X: btnW, Y: barH})
-					hovered := imgui.IsItemHovered()
-					if hovered {
-						dl.AddRectFilled(imgui.Vec2{X: x, Y: pos.Y}, imgui.Vec2{X: x + btnW, Y: pos.Y + barH}, g.ColorToUint(Ternary(i == 2, ThemeAccentRed, ThemeBg3)))
-					}
-					mx, my, r := snap(x+btnW/2), snap(pos.Y+barH/2), scaled(5)
-					switch i {
-					case 0:
-						dl.AddLine(imgui.Vec2{X: mx - r, Y: my}, imgui.Vec2{X: mx + r, Y: my}, iconCol)
-						if clicked {
-							C.glfwIconifyWindow(gw)
-						}
-					case 1:
-						dl.AddRect(imgui.Vec2{X: mx - r, Y: my - r}, imgui.Vec2{X: mx + r + 1, Y: my + r + 1}, iconCol)
-						if clicked {
-							if maximized {
-								C.glfwRestoreWindow(gw)
-							} else {
-								C.glfwMaximizeWindow(gw)
+				if macOS {
+					colors := []color.RGBA{{255, 95, 87, 255}, {254, 188, 46, 255}, {40, 200, 64, 255}}
+					for i, id := range []string{"##close", "##minimize", "##maximize"} {
+						cx := pos.X + scaled(float32(18+i*20))
+						cy := pos.Y + barH/2
+						hitSize := scaled(20)
+						imgui.SetCursorScreenPos(imgui.Vec2{X: cx - hitSize/2, Y: cy - hitSize/2})
+						clicked := imgui.InvisibleButton(id, imgui.Vec2{X: hitSize, Y: hitSize})
+						hovered := imgui.IsItemHovered()
+						center := imgui.Vec2{X: snap(cx), Y: snap(cy)}
+						radius := scaled(6)
+						dl.AddCircleFilled(center, radius, g.ColorToUint(colors[i]))
+						dl.AddCircle(center, radius, g.ColorToUint(color.RGBA{0, 0, 0, 45}))
+						if hovered {
+							mark := scaled(3)
+							markCol := g.ColorToUint(color.RGBA{80, 50, 40, 255})
+							switch i {
+							case 0:
+								xMark := scaled(2)
+								for d := -xMark; d <= xMark; d++ {
+									dl.AddRectFilled(imgui.Vec2{X: center.X + d - 1, Y: center.Y + d - 1}, imgui.Vec2{X: center.X + d + 1, Y: center.Y + d + 1}, markCol)
+									dl.AddRectFilled(imgui.Vec2{X: center.X + d - 1, Y: center.Y - d - 1}, imgui.Vec2{X: center.X + d + 1, Y: center.Y - d + 1}, markCol)
+								}
+							case 1:
+								dl.AddRectFilled(imgui.Vec2{X: center.X - mark, Y: center.Y - 1}, imgui.Vec2{X: center.X + mark, Y: center.Y + 1}, markCol)
+							case 2:
+								arrowMark := scaled(2.5)
+								inner := arrowMark / 4
+								dl.PathClear()
+								dl.PathLineTo(imgui.Vec2{X: center.X + arrowMark, Y: center.Y - arrowMark})
+								dl.PathLineTo(imgui.Vec2{X: center.X + arrowMark, Y: center.Y + inner})
+								dl.PathLineTo(imgui.Vec2{X: center.X - inner, Y: center.Y - arrowMark})
+								dl.PathFillConvex(markCol)
+								dl.PathClear()
+								dl.PathLineTo(imgui.Vec2{X: center.X - arrowMark, Y: center.Y + arrowMark})
+								dl.PathLineTo(imgui.Vec2{X: center.X - arrowMark, Y: center.Y - inner})
+								dl.PathLineTo(imgui.Vec2{X: center.X + inner, Y: center.Y + arrowMark})
+								dl.PathFillConvex(markCol)
 							}
 						}
-					case 2:
-						xCol := Ternary(hovered, g.ColorToUint(ThemeFg1), iconCol)
-						for d := -r; d <= r; d++ {
-							dl.AddRectFilled(imgui.Vec2{X: mx + d, Y: my + d}, imgui.Vec2{X: mx + d + 1, Y: my + d + 1}, xCol)
-							dl.AddRectFilled(imgui.Vec2{X: mx + d, Y: my - d}, imgui.Vec2{X: mx + d + 1, Y: my - d + 1}, xCol)
-						}
 						if clicked {
-							win.SetShouldClose(true)
+							switch i {
+							case 0:
+								win.SetShouldClose(true)
+							case 1:
+								C.glfwIconifyWindow(gw)
+							case 2:
+								if maximized {
+									C.glfwRestoreWindow(gw)
+								} else {
+									C.glfwMaximizeWindow(gw)
+								}
+							}
+						}
+					}
+				} else {
+					for i, id := range []string{"##minimize", "##maximize", "##close"} {
+						x := pos.X + size.X - btnW*float32(3-i)
+						imgui.SetCursorScreenPos(imgui.Vec2{X: x, Y: pos.Y})
+						clicked := imgui.InvisibleButton(id, imgui.Vec2{X: btnW, Y: barH})
+						hovered := imgui.IsItemHovered()
+						if hovered {
+							dl.AddRectFilled(imgui.Vec2{X: x, Y: pos.Y}, imgui.Vec2{X: x + btnW, Y: pos.Y + barH}, g.ColorToUint(Ternary(i == 2, ThemeAccentRed, ThemeBg3)))
+						}
+						mx, my, r := snap(x+btnW/2), snap(pos.Y+barH/2), scaled(5)
+						switch i {
+						case 0:
+							dl.AddLine(imgui.Vec2{X: mx - r, Y: my}, imgui.Vec2{X: mx + r, Y: my}, iconCol)
+							if clicked {
+								C.glfwIconifyWindow(gw)
+							}
+						case 1:
+							dl.AddRect(imgui.Vec2{X: mx - r, Y: my - r}, imgui.Vec2{X: mx + r + 1, Y: my + r + 1}, iconCol)
+							if clicked {
+								if maximized {
+									C.glfwRestoreWindow(gw)
+								} else {
+									C.glfwMaximizeWindow(gw)
+								}
+							}
+						case 2:
+							xCol := Ternary(hovered, g.ColorToUint(ThemeFg1), iconCol)
+							for d := -r; d <= r; d++ {
+								dl.AddRectFilled(imgui.Vec2{X: mx + d, Y: my + d}, imgui.Vec2{X: mx + d + 1, Y: my + d + 1}, xCol)
+								dl.AddRectFilled(imgui.Vec2{X: mx + d, Y: my - d}, imgui.Vec2{X: mx + d + 1, Y: my - d + 1}, xCol)
+							}
+							if clicked {
+								win.SetShouldClose(true)
+							}
 						}
 					}
 				}
